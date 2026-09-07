@@ -28,10 +28,14 @@ Course snapshots and diff baselines live at:
 ### 1. Course Discovery & Inspection
 | Command | Purpose |
 | :--- | :--- |
-| `vsuee courses` | List active enrolled courses with progress percentages |
-| `vsuee courses --all` | List all enrolled courses including past, future, and hidden shells |
-| `vsuee courses --filter <cls>` | Filter by classification: `inprogress`, `past`, `future`, `hidden`, `all` |
+| `vsuee courses` | List active, non-hidden enrolled courses (hidden courses excluded by default) |
+| `vsuee courses --hidden` | List only courses hidden from dashboard view |
+| `vsuee courses --all` | List all enrolled courses including past, future, and hidden courses |
+| `vsuee courses --include-hidden` | Alias for `--all` |
+| `vsuee courses --filter <cls>` | Filter by classification: `inprogress`, `past`, `future`, `hidden`, `favourites`, `all` |
 | `vsuee courses --search <term>` | Search enrolled courses by code (e.g. `CSci 144`) or title |
+| `vsuee hide <course_id>` | Hide a course from Moodle dashboard overview |
+| `vsuee unhide <course_id>` | Unhide a course to show on Moodle dashboard overview |
 | `vsuee course <course_id>` | View course outline, topics, lessons, quizzes, and files |
 | `vsuee course <course_id> --all`| View all sections including empty and instructor-hidden topics |
 | `vsuee read <mod_id>` | Read full text/content of a Moodle Page or lesson module |

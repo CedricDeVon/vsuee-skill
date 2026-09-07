@@ -203,4 +203,34 @@ test('MoodleClient getUrlDetails extracts embedded video and target link', async
   }
 });
 
+test('MoodleClient setCourseHidden calls core_user_update_user_preferences', async () => {
+  const client = new MoodleClient();
+  client.sessionCookie = 'test-session';
+  client.sesskey = 'test-sesskey';
+
+  let calledMethod = null;
+  let calledArgs = null;
+  client.callAjax = async (method, args) => {
+    calledMethod = method;
+    calledArgs = args;
+    return null;
+  };
+
+  const res = await client.setCourseHidden(1610, true);
+  assert.equal(res.success, true);
+  assert.equal(res.courseId, 1610);
+  assert.equal(res.hidden, true);
+  assert.equal(calledMethod, 'core_user_update_user_preferences');
+  assert.deepEqual(calledArgs, {
+    preferences: [{ type: 'block_myoverview_hidden_course_1610', value: 1 }],
+  });
+
+  const resUnhide = await client.setCourseHidden(1610, false);
+  assert.equal(resUnhide.hidden, false);
+  assert.deepEqual(calledArgs, {
+    preferences: [{ type: 'block_myoverview_hidden_course_1610', value: 0 }],
+  });
+});
+
+
 

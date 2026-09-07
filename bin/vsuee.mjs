@@ -30,7 +30,9 @@ Session & Connectivity:
   touch, keepalive           Ping dashboard to keep 6-hour sliding session window fresh
 
 Courses & Academic Content:
-  courses                    List enrolled courses and progress (--all, --filter, --search)
+  courses                    List enrolled courses and progress (--all, --hidden, --filter, --search)
+  hide <id>                  Hide a course from your Moodle overview dashboard
+  unhide <id>                Unhide a course to show on your Moodle overview dashboard
   course <id>                View course syllabus, sections, modules, and completion (--all)
   read, page <id>            Read full text and instructions of a Moodle Page module
   url, link <id>             Inspect external link or video target of a Moodle URL module
@@ -62,8 +64,10 @@ Target Shortcuts (for screenshot, images, file):
   course <id> | assign <id> | quiz <id> | page <id> | forum <id> | discuss <id> | <url>
 
 Options:
-  --all, -a                  Include all courses (including past and hidden courses)
-  --filter <status>          Filter courses: inprogress, past, future, hidden, all
+  --all, -a                  Include all courses (including courses hidden in dashboard view)
+  --include-hidden           Alias for --all to show hidden courses
+  --hidden                   Show only courses hidden from dashboard view
+  --filter <status>          Filter courses: inprogress, past, future, hidden, favourites, all
   --search <term>            Search courses by code or title
   --export, -e <file>        Export calendar schedule to .ics file (for Apple/Google Calendar)
   --period <period>          Calendar period: recentupcoming (default), monthnow, weeknext, custom
@@ -419,8 +423,15 @@ async function main() {
       }
 
       case 'courses': {
-        const all = args.includes('--all') || args.includes('-a');
-        const filter = getArg('--filter') || getArg('-f');
+        const all = args.includes('--all') || args.includes('-a') || args.includes('--include-hidden');
+        let filter = getArg('--filter') || getArg('-f');
+        if (!filter) {
+          if (args.includes('--hidden')) filter = 'hidden';
+          else if (args.includes('--inprogress') || args.includes('--in-progress')) filter = 'inprogress';
+          else if (args.includes('--past')) filter = 'past';
+          else if (args.includes('--future')) filter = 'future';
+          else if (args.includes('--starred') || args.includes('--favorites') || args.includes('--favourites')) filter = 'favourites';
+        }
         const search = getArg('--search') || getArg('-s');
         const courses = await client.getCourses({ all, filter, search });
 
@@ -439,7 +450,47 @@ async function main() {
             console.log(`• [ID: ${c.id}] ${c.fullname}${prog}${hiddenBadge}${favBadge}`);
             console.log(`  URL: ${c.viewurl}`);
           }
-          console.log('------------------------------------\n');
+          console.log('------------------------------------');
+          if (!all && !filter) {
+            console.log('💡 Tip: Courses hidden in Moodle are excluded by default. Use `vsuee courses --hidden` to view them, or `vsuee courses --all` for all courses.\n');
+          } else {
+            console.log('');
+          }
+        }
+        break;
+      }
+
+      case 'hide':
+      case 'hide-course': {
+        const courseId = getArg('--course') || getPositionalArg(1);
+        if (!courseId) {
+          console.error('Error: Please specify course ID to hide. Example: vsuee hide 1610');
+          process.exit(1);
+        }
+        try {
+          await client.setCourseHidden(courseId, true);
+          console.log(`\nCourse ${courseId} is now hidden from your Moodle overview dashboard.`);
+          console.log(`Run \`vsuee courses --hidden\` to view hidden courses, or \`vsuee unhide ${courseId}\` to restore.\n`);
+        } catch (err) {
+          console.error(`\nFailed to hide course: ${err.message}\n`);
+          process.exit(1);
+        }
+        break;
+      }
+
+      case 'unhide':
+      case 'unhide-course': {
+        const courseId = getArg('--course') || getPositionalArg(1);
+        if (!courseId) {
+          console.error('Error: Please specify course ID to unhide. Example: vsuee unhide 1610');
+          process.exit(1);
+        }
+        try {
+          await client.setCourseHidden(courseId, false);
+          console.log(`\nCourse ${courseId} is now unhidden and visible on your Moodle overview dashboard.\n`);
+        } catch (err) {
+          console.error(`\nFailed to unhide course: ${err.message}\n`);
+          process.exit(1);
         }
         break;
       }
