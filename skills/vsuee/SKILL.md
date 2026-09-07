@@ -76,6 +76,10 @@ Course snapshots and diff baselines live at:
 | `vsuee submission <id> --download-rubric` | Download attached rubric files and save criteria breakdown |
 | `vsuee submission <id> --download-submission` | Download student's submitted files |
 | `vsuee submissions [course_id]` | Summary matrix of submission statuses across course assignments |
+| `vsuee submit <id> --file <path>` | Submit assignment file in draft mode with interactive confirmation |
+| `vsuee submit <id> --text <str>` | Submit online text response in draft mode |
+| `vsuee submit <id> --file <p> --final` | Finalize submission for grading (agrees to honor statement if required) |
+| `vsuee submit <id> --file <p> --yes` | Bypass confirmation prompt (recommended for automation scripts) |
 | `vsuee grades` | View gradebook overview across courses |
 | `vsuee grades --course <id>` | View itemized gradebook report for a specific course |
 
@@ -339,10 +343,44 @@ Moodle sessions expire after idle timeouts or overnight. The toolkit automatical
    vsuee session auto on
    ```
 
+### 11. Assignment Submissions & Academic Integrity Guardrails
+
+Students can submit completed assignment files or online text directly from their terminal or agentic workflow:
+
+1. **Submitting Assignment Files**:
+   ```bash
+   # Submit a document in Draft mode (safe, interactive verification):
+   vsuee submit 187160 --file ~/Documents/Lab_Report_1.pdf
+
+   # Submit and finalize immediately for grading:
+   vsuee submit 187160 --file ~/Documents/Lab_Report_1.pdf --final
+
+   # Non-interactive / Agent scripted submission (bypasses [y/N] prompt):
+   vsuee submit 187160 --file ~/Documents/Lab_Report_1.pdf --yes
+   ```
+
+2. **Submitting Online Text**:
+   ```bash
+   # Submit online text response:
+   vsuee submit 215217 --text "I hereby pledge to uphold the VSU Student Honor Code."
+   ```
+
+3. **Built-in Safety Guardrails**:
+   - **Draft Mode by Default**: Submissions remain in draft mode unless `--final` is explicitly given.
+   - **Integrity Check**: SHA-256 hash is computed and displayed prior to upload.
+   - **Post-Submission Verification**: The tool automatically re-fetches the Moodle assignment details to verify that the file or text was accepted by the portal.
+   - **Audit Receipt**: Every submission event is recorded with timestamp and SHA-256 in `~/.config/vsuee/submissions.log`.
+
 ---
 
 ## Safety & Operating Rules
 
-- **Academic Integrity**: Never blindly auto-submit answers to quizzes or tests. Quizzes should be inspected for deadlines and reviewed with the user.
-- **Confirmation Gate**: Before performing destructive or grading-impacting actions (e.g. finalizing an assignment submission), always confirm with the user.
-- **Privacy & Security**: Credentials and session cookies are stored in local `~/.config/vsuee/session.json` (chmod 600). Never log or commit session cookies or passwords.
+- **Academic Integrity Boundary**:
+  - **Automated Quiz Cheating / Exam Solving is Strictly Disabled**: In strict adherence to university honor codes (VSU Student Handbook) and ethical AI principles, this toolkit **never** automates quiz-solving, auto-answers tests, or creates cheat bots. Quizzes may only be inspected for deadlines, instructions, and time limits.
+- **Confirmation Gates on Submissions**:
+  - Submissions require explicit human confirmation (`[y/N]`) in interactive terminals, or explicit `--yes` / `--confirm` in automated agent workflows.
+  - Submissions default to draft mode to protect students from premature finalization.
+- **Privacy & Security**:
+  - Credentials and session cookies are stored locally in `~/.config/vsuee/session.json` (`chmod 0600`) encrypted with machine-bound AES-256-GCM.
+  - Never commit passwords, tokens, or personal student data to Git repositories.
+

@@ -209,6 +209,10 @@ Once installed, agents will automatically discover `vsuee` commands when asked q
 | `vsuee assign <id> --download-submission` | Download student's previously submitted files |
 | `vsuee submission <assign_id>` | Detailed submission status, online text, grades, teacher feedback, and rubrics |
 | `vsuee submissions [course_id]` | Summary matrix of submission statuses across assignments |
+| `vsuee submit <id> --file <path>` | Submit assignment file in draft mode with interactive preview |
+| `vsuee submit <id> --text <str>` | Submit online text response in draft mode |
+| `vsuee submit <id> --file <p> --final` | Finalize submission for grading (agrees to honor statement if required) |
+| `vsuee submit <id> --file <p> --yes` | Bypass confirmation prompt (recommended for automation scripts) |
 | `vsuee grades` | View gradebook overview across courses |
 | `vsuee grades --course <id>` | View detailed grade report for a specific course |
 
@@ -313,15 +317,15 @@ vsuee daemon status
 
 ## Academic Integrity
 
-- **Read-Only / Inspection Focused**: `vsuee` is built to organize, inspect, sync, and download course materials.
-- **No Automated Quiz Submissions**: The tool intentionally does not provide automated quiz-answering or automated assessment submission. Quizzes must be completed interactively by the student.
-- **Confirmation Gate**: Before performing grade-impacting actions, always confirm with the user.
+- **Strict Quiz & Exam Boundary**: In adherence with the Visayas State University Student Honor Code and AI safety principles, `vsuee` **strictly disables and rejects** any automated quiz-answering, question solving, or test-taking automations. Quizzes are strictly inspectable for deadlines, open/close windows, and syllabus review only.
+- **Assignment Submissions**: Legitimate student-authored assignment files and online text responses can be submitted via `vsuee submit`. To prevent accidental or premature submissions, submissions default to draft mode, require interactive confirmation (`[y/N]`), verify SHA-256 hashes, and log local receipts in `~/.config/vsuee/submissions.log`.
+- **Confirmation Gate**: Grade-impacting actions always require explicit user confirmation.
 
 ---
 
 ## Development & Testing
 
-The test suite contains 69 tests covering authentication, session auto-relogin, course parsing, module reading, parallel downloads, calendar .ics generation, snapshot diffing, and browser screenshots.
+The test suite contains 72 tests covering authentication, session auto-relogin, course parsing, module reading, parallel downloads, calendar .ics generation, assignment submissions, snapshot diffing, and browser screenshots.
 
 ```bash
 # Run unit tests (offline, no network or credentials needed)

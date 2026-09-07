@@ -4,8 +4,9 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { Writable } from 'node:stream';
 import fs from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync, readFileSync } from 'node:fs';
 import os from 'node:os';
+import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { MoodleClient, expandHome, ProgressIndicator } from '../lib/moodle-client.mjs';
@@ -44,6 +45,7 @@ Courses & Academic Content:
   assign <id>                View full assignment description, rubric, files, and status
   submission <id>            Inspect submission status, grades, rubrics, and files (--download-rubric)
   submissions [course_id]    View submission matrix across course or all courses
+  submit <id>                Submit assignment file or text (--file <path>, --text <str>, --draft, --final)
   grades                     View gradebook summary or course breakdown (--course <id>)
   download <course_id>       Parallel download course materials/slides (--concurrency, --dest, --type)
   file, get-file <id|url>    Download single module, lecture slide, or file directly (--dest, --force)
@@ -75,6 +77,11 @@ Options:
   --concurrency, -c <num>    Bounded parallel download streams (default: 4, max: 16)
   --download-rubric          Download attached rubric and guideline files for an assignment
   --download-submission      Download student's own submitted files for an assignment
+  --file, -f <path>          File path to upload for assignment submission
+  --text, -t <string>        Online text content for assignment submission
+  --final                    Finalize assignment submission for grading (default is draft)
+  --draft                    Keep assignment submission in draft mode
+  --yes, -y, --confirm       Bypass interactive confirmation prompt when submitting
   --download-new             Auto-download newly detected files during sync or watch
   --dest <dir>               Target download directory or file path (default: ~/Downloads/VSUEE)
   --type <ext>               Filter downloads by file type (e.g. pdf, pptx, docx, xlsx, zip, video)
@@ -579,10 +586,26 @@ async function main() {
         break;
       }
 
+      case 'solve-quiz':
+      case 'answer-quiz': {
+        console.error('\n⚠️  Academic Integrity Policy Notice:');
+        console.error('Automated quiz-answering and exam-solving are strictly disabled.');
+        console.error('In adherence with the VSU Student Honor Code and AI safety principles, this toolkit');
+        console.error('does not automate quiz answers or test-taking under any circumstances.\n');
+        process.exit(1);
+      }
+
       case 'quiz': {
         const quizId = getArg('--id') || getPositionalArg(1);
         if (!quizId) {
           console.error('Error: Please specify quiz ID. Example: vsuee quiz 262926');
+          process.exit(1);
+        }
+        if (args.includes('--solve') || args.includes('--answer') || args.includes('--auto')) {
+          console.error('\n⚠️  Academic Integrity Policy Notice:');
+          console.error('Automated quiz-answering and exam-solving are strictly disabled.');
+          console.error('In adherence with the VSU Student Honor Code and AI safety principles, this toolkit');
+          console.error('does not automate quiz answers or test-taking under any circumstances.\n');
           process.exit(1);
         }
         const quiz = await client.getQuizDetails(quizId);
@@ -1198,6 +1221,128 @@ async function main() {
             console.log(`  Download Submission: vsuee submission ${details.id} --download-submission`);
           }
           console.log('');
+        }
+        break;
+      }
+
+      case 'submit': {
+        const assignId = getArg('--id') || getPositionalArg(1);
+        if (!assignId) {
+          console.error('Error: Please specify assignment ID. Example: vsuee submit 187160 --file report.pdf');
+          process.exit(1);
+        }
+
+        const filePath = getArg('--file') || getArg('-f');
+        const onlineText = getArg('--text') || getArg('-t');
+        const isFinal = args.includes('--final');
+        const isDraft = args.includes('--draft');
+        const autoConfirm = args.includes('--yes') || args.includes('-y') || args.includes('--confirm');
+
+        if (!filePath && !onlineText) {
+          console.error('Error: Please specify either a file (--file <path>) or online text (--text <string>) to submit.');
+          process.exit(1);
+        }
+
+        let fileStats = null;
+        let fileHash = null;
+        let resolvedPath = null;
+        if (filePath) {
+          resolvedPath = path.resolve(expandHome(filePath));
+          if (!existsSync(resolvedPath)) {
+            console.error(`Error: File not found: ${resolvedPath}`);
+            process.exit(1);
+          }
+          fileStats = statSync(resolvedPath);
+          if (fileStats.isDirectory()) {
+            console.error(`Error: Path is a directory: ${resolvedPath}`);
+            process.exit(1);
+          }
+          if (fileStats.size === 0) {
+            console.error(`Error: File is empty (0 bytes): ${resolvedPath}`);
+            process.exit(1);
+          }
+          const buffer = readFileSync(resolvedPath);
+          fileHash = crypto.createHash('sha256').update(buffer).digest('hex');
+        }
+
+        if (!isJson) {
+          console.log(`Loading assignment ${assignId} details for submission preview...`);
+        }
+
+        let assignInfo;
+        try {
+          assignInfo = await client.getAssignmentDetails(assignId);
+        } catch (err) {
+          console.error(`Error loading assignment ${assignId}: ${err.message}`);
+          process.exit(1);
+        }
+
+        if (!isJson) {
+          console.log('\n======================================================');
+          console.log(` Assignment Submission Preview`);
+          console.log(` Title:          ${assignInfo.title} (ID: ${assignId})`);
+          if (assignInfo.course) console.log(` Course:         ${assignInfo.course}`);
+          if (assignInfo.dueDate) console.log(` Due Date:       ${assignInfo.dueDate}`);
+          console.log(` Current Status: ${assignInfo.status}`);
+          console.log(` Mode:           ${isFinal ? 'FINAL (Submitted for grading)' : 'DRAFT (Can be updated later)'}`);
+          if (filePath) {
+            console.log(` File:           ${resolvedPath}`);
+            console.log(` Size:           ${(fileStats.size / 1024).toFixed(1)} KB`);
+            console.log(` SHA-256:        ${fileHash}`);
+          }
+          if (onlineText) {
+            console.log(` Online Text:    ${onlineText.length > 80 ? onlineText.slice(0, 80) + '...' : onlineText}`);
+          }
+          console.log('======================================================\n');
+          console.log('⚠️  Notice: Ensure your submission complies with the VSU Student Honor Code.');
+        }
+
+        if (!autoConfirm) {
+          if (!process.stdin.isTTY) {
+            console.error('Error: In non-interactive mode, you must explicitly pass --yes or --confirm to submit.');
+            process.exit(1);
+          }
+
+          const answer = await promptText('\nProceed with submission to VSU eLearning? [y/N]: ');
+          if (!/^y(es)?$/i.test(answer.trim())) {
+            console.log('Submission cancelled by user.');
+            process.exit(0);
+          }
+        }
+
+        if (!isJson) {
+          console.log('\nSubmitting to VSUEE...');
+        }
+
+        try {
+          const result = await client.submitAssignment(assignId, {
+            filePath,
+            onlineText,
+            final: isFinal,
+            onProgress: (p) => {
+              if (!isJson && !args.includes('--quiet') && !args.includes('-q')) {
+                if (p.step === 'uploading') console.log(`  Uploading ${p.filename} (${(p.size / 1024).toFixed(1)} KB)...`);
+                if (p.step === 'saving') console.log('  Saving submission in Moodle...');
+                if (p.step === 'finalizing') console.log('  Confirming final submission statement...');
+              }
+            }
+          });
+
+          if (isJson) {
+            console.log(JSON.stringify(result, null, 2));
+          } else {
+            console.log('\n✅ Submission successful and verified on VSUEE!');
+            console.log(`Status:  ${result.status}`);
+            console.log(`Mode:    ${result.mode.toUpperCase()}`);
+            if (result.file) {
+              console.log(`File:    ${result.file.name} (SHA-256: ${result.file.sha256})`);
+            }
+            console.log(`Audit:   ~/.config/vsuee/submissions.log`);
+            console.log(`Time:    ${result.timestamp}\n`);
+          }
+        } catch (err) {
+          console.error(`\n❌ Submission failed: ${err.message}`);
+          process.exit(1);
         }
         break;
       }

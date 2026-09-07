@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
-import { MoodleClient, expandHome } from '../lib/moodle-client.mjs';
+import fsSync from 'node:fs';
+import { MoodleClient, expandHome, getMimeType } from '../lib/moodle-client.mjs';
 
 test('MoodleClient session management and headers', async () => {
   const client = new MoodleClient();
@@ -232,5 +233,169 @@ test('MoodleClient setCourseHidden calls core_user_update_user_preferences', asy
   });
 });
 
+test('getMimeType returns correct MIME types', () => {
+  assert.equal(getMimeType('document.pdf'), 'application/pdf');
+  assert.equal(getMimeType('paper.docx'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  assert.equal(getMimeType('archive.zip'), 'application/zip');
+  assert.equal(getMimeType('presentation.pptx'), 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+  assert.equal(getMimeType('spreadsheet.xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  assert.equal(getMimeType('sheet.xls'), 'application/vnd.ms-excel');
+  assert.equal(getMimeType('image.png'), 'image/png');
+  assert.equal(getMimeType('unknown.xyz123'), 'application/octet-stream');
+  assert.equal(getMimeType(null), 'application/octet-stream');
+});
 
+test('MoodleClient submitAssignment validation checks', async () => {
+  const client = new MoodleClient();
+  client.sessionCookie = 'mock-cookie';
+  client.sesskey = 'mock-sesskey';
 
+  // Requires assignId
+  await assert.rejects(
+    async () => client.submitAssignment(null),
+    /Assignment ID is required/
+  );
+
+  // Requires either file or online text
+  await assert.rejects(
+    async () => client.submitAssignment(12345, {}),
+    /Must provide either a file/
+  );
+
+  // Requires valid existing file
+  await assert.rejects(
+    async () => client.submitAssignment(12345, { filePath: '/non/existent/file.pdf' }),
+    /File not found/
+  );
+
+  // Requires non-empty file
+  const tmpFile = path.join(os.tmpdir(), `vsuee_test_empty_${Date.now()}.txt`);
+  fsSync.writeFileSync(tmpFile, '');
+  try {
+    await assert.rejects(
+      async () => client.submitAssignment(12345, { filePath: tmpFile }),
+      /Target file is empty/
+    );
+  } finally {
+    if (fsSync.existsSync(tmpFile)) fsSync.unlinkSync(tmpFile);
+  }
+});
+
+test('MoodleClient submitAssignment end-to-end mock flow', async () => {
+  const client = new MoodleClient();
+  client.sessionCookie = 'mock-cookie';
+  client.sesskey = 'mock-sesskey';
+
+  const testFile = path.join(os.tmpdir(), `vsuee_sub_${Date.now()}.pdf`);
+  fsSync.writeFileSync(testFile, '%PDF-1.4 mock pdf content for submission');
+
+  const mockEditHtml = `
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <form action="https://elearning.vsu.edu.ph/mod/assign/view.php" method="post">
+          <input type="hidden" name="lastmodified" value="1700000000" />
+          <input type="hidden" name="id" value="12345" />
+          <input type="hidden" name="userid" value="27467" />
+          <input type="hidden" name="action" value="savesubmission" />
+          <input type="hidden" name="sesskey" value="mock-sesskey" />
+          <input type="hidden" name="_qf__mod_assign_submission_form" value="1" />
+        </form>
+        <script>
+          M.form_filemanager.init(Y, {
+            "itemid": 987654321,
+            "maxbytes": 20971520,
+            "maxfiles": 10,
+            "client_id": "client_abc123",
+            "accepted_types": [".pdf", ".docx"],
+            "repositories": {
+              "4": { "id": "4", "name": "Upload a file", "type": "upload" }
+            }
+          });
+        </script>
+      </body>
+    </html>
+  `;
+
+  const mockViewHtml = `
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <h2>Midterm Project Report</h2>
+        <div id="intro">Submit your midterm project report here.</div>
+        <table class="generaltable">
+          <tr><th>Submission status</th><td>Submitted for grading</td></tr>
+          <tr><th>Grading status</th><td>Not graded</td></tr>
+          <tr><th>Due date</th><td>Friday, 15 May 2026, 11:59 PM</td></tr>
+          <tr><th>File submissions</th><td><a href="https://elearning.vsu.edu.ph/pluginfile.php/1/mod_assign/submission_files/test.pdf">${path.basename(testFile)}</a></td></tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const requests = [];
+
+  client.fetchWithAuth = async (url, opts = {}) => {
+    requests.push({ url, method: opts.method || 'GET', body: opts.body });
+
+    if (url.includes('action=editsubmission')) {
+      return {
+        ok: true,
+        status: 200,
+        text: async () => mockEditHtml,
+      };
+    }
+
+    if (url.includes('repository_ajax.php?action=upload')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ event: 'upload', id: 98765, file: path.basename(testFile) }),
+      };
+    }
+
+    if (url.includes('mod/assign/view.php') && opts.method === 'POST') {
+      return {
+        ok: true,
+        status: 200,
+        text: async () => mockViewHtml,
+      };
+    }
+
+    if (url.includes('mod/assign/view.php?id=12345')) {
+      return {
+        ok: true,
+        status: 200,
+        text: async () => mockViewHtml,
+      };
+    }
+
+    return { ok: true, status: 200, text: async () => '' };
+  };
+
+  try {
+    const result = await client.submitAssignment(12345, {
+      filePath: testFile,
+      final: false,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.assignId, 12345);
+    assert.equal(result.mode, 'draft');
+    assert.equal(result.verified, true);
+    assert.equal(result.file.name, path.basename(testFile));
+    assert.ok(result.file.sha256);
+    assert.equal(result.file.size > 0, true);
+
+    // Verify upload request occurred
+    const uploadReq = requests.find(r => r.url.includes('repository_ajax.php?action=upload'));
+    assert.ok(uploadReq, 'Repository upload request should have been made');
+    assert.equal(uploadReq.method, 'POST');
+
+    // Verify form save request occurred
+    const saveReq = requests.find(r => r.url.includes('mod/assign/view.php') && r.method === 'POST');
+    assert.ok(saveReq, 'Save submission form request should have been made');
+  } finally {
+    if (fsSync.existsSync(testFile)) fsSync.unlinkSync(testFile);
+  }
+});
