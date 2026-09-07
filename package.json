@@ -1,0 +1,58 @@
+{
+  "name": "vsuee",
+  "version": "1.0.0",
+  "description": "High-speed CLI toolkit and AI agent skill for the Visayas State University E-Learning Environment (VSUEE Moodle).",
+  "keywords": [
+    "vsuee",
+    "vsu",
+    "moodle",
+    "elearning",
+    "agent-skill",
+    "ai-agent",
+    "calendar-export",
+    "sync",
+    "downloader",
+    "automation",
+    "playwright"
+  ],
+  "homepage": "https://github.com/M1Vj/vsuee#readme",
+  "bugs": {
+    "url": "https://github.com/M1Vj/vsuee/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/M1Vj/vsuee.git"
+  },
+  "license": "MIT",
+  "author": "Vj Mabansag",
+  "type": "module",
+  "main": "./lib/moodle-client.mjs",
+  "bin": {
+    "vsuee": "./bin/vsuee.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "skills",
+    "plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "npm run test:unit",
+    "test:unit": "node --test test/moodle-client.test.mjs test/moodle-client-downloads.test.mjs test/session-auth.test.mjs test/sync-manager.test.mjs test/browser-runner.test.mjs",
+    "test:all": "node --test test/*.test.mjs",
+    "test:live": "VSUEE_LIVE_TEST=1 node --test test/integration.test.mjs"
+  },
+  "peerDependencies": {
+    "playwright": "^1.40.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
+  }
+}
