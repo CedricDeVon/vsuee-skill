@@ -13,7 +13,7 @@ This skill provides an automated toolkit and interface for interacting with the 
 
 ## Overview
 
-The `vsuee` CLI engine is installed on the system `$PATH` (e.g. `vsuee` or `~/.local/bin/vsuee`).
+The `vsuee` CLI engine is installed globally on the system `$PATH` (e.g. `vsuee` via `npm link`, or added to PATH across macOS, Linux, and Windows).
 It provides high-speed, direct HTTP/AJAX interaction with Moodle, intelligent snapshotting and change-detection diffing, background monitoring automations, and an optional Playwright browser fallback.
 
 Sessions and cookies are cached securely at:

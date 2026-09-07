@@ -24,8 +24,8 @@ Thank you for your interest in improving `vsuee`! This project is designed as an
 
 ```bash
 # Clone the repository
-git clone https://github.com/M1Vj/vsuee.git
-cd vsuee
+git clone https://github.com/M1Vj/vsuee-skill.git
+cd vsuee-skill
 
 # Run the unit test suite (hermetic, offline, no credentials required)
 npm run test:unit

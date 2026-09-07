@@ -1,9 +1,10 @@
 {
-  "name": "vsuee",
+  "name": "vsuee-skill",
   "version": "1.0.0",
   "description": "High-speed CLI toolkit and AI agent skill for the Visayas State University E-Learning Environment (VSUEE Moodle).",
   "keywords": [
     "vsuee",
+    "vsuee-skill",
     "vsu",
     "moodle",
     "elearning",
@@ -15,13 +16,13 @@
     "automation",
     "playwright"
   ],
-  "homepage": "https://github.com/M1Vj/vsuee#readme",
+  "homepage": "https://github.com/M1Vj/vsuee-skill#readme",
   "bugs": {
-    "url": "https://github.com/M1Vj/vsuee/issues"
+    "url": "https://github.com/M1Vj/vsuee-skill/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/M1Vj/vsuee.git"
+    "url": "git+https://github.com/M1Vj/vsuee-skill.git"
   },
   "license": "MIT",
   "author": "Vj Mabansag",

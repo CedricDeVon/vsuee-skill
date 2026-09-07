@@ -1,13 +1,13 @@
-# VSUEE — Visayas State University E-Learning Toolkit & Agent Skill
+# VSUEE Skill — Visayas State University E-Learning Toolkit & Agent Skill
 
-[![CI](https://github.com/M1Vj/vsuee/actions/workflows/ci.yml/badge.svg)](https://github.com/M1Vj/vsuee/actions)
+[![CI](https://github.com/M1Vj/vsuee-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/M1Vj/vsuee-skill/actions)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![AI Agent Skill](https://img.shields.io/badge/Agent_Skill-Gemini_%7C_Codex_%7C_Claude-orange.svg)](skills/vsuee/SKILL.md)
 
 High-performance CLI toolkit and AI agent skill for the **Visayas State University E-Learning Environment (VSUEE)** running Moodle at [elearning.vsu.edu.ph](https://elearning.vsu.edu.ph).
 
-Engineered for students, researchers, and autonomous coding agents (Gemini CLI, Codex, Claude Code, Cursor) who need instant access to course syllabi, assignments, lecture slides, submission rubrics, calendar deadlines, and last-minute instructor updates without fighting slow web interfaces.
+Engineered for students, researchers, and autonomous coding agents (Gemini CLI, Codex, Claude Code, Cursor) across macOS, Linux, and Windows who need instant access to course syllabi, assignments, lecture slides, submission rubrics, calendar deadlines, and last-minute instructor updates without fighting slow web interfaces.
 
 ---
 
@@ -20,6 +20,7 @@ Engineered for students, researchers, and autonomous coding agents (Gemini CLI, 
 - 🔐 **Machine-Bound AES-256-GCM Session Storage**: Encrypts credentials and sessions with a machine-derived key stored at `~/.config/vsuee/session.json` (`chmod 0600`). Automatically handles background re-authentication on 6-hour sliding window timeouts.
 - 📸 **Targeted Visual Proof**: Playwright fallback to capture crisp element screenshots (`--selector`) or full-page captures for quiz timers, submission tables, and grades.
 - 🤖 **Agent-Ready Native Skill**: Includes a standardized [`SKILL.md`](skills/vsuee/SKILL.md) specification enabling AI agents to read lecture pages, inspect rubrics, verify submission statuses, and monitor updates autonomously.
+- 🌐 **Cross-Platform**: Fully supported across macOS, Linux, and Windows with zero platform lock-in.
 
 ---
 
@@ -49,23 +50,32 @@ Engineered for students, researchers, and autonomous coding agents (Gemini CLI, 
 - Node.js >= 18.0.0
 - (Optional) `playwright` for browser mode / screenshot capture
 
-### Global Install
+### Universal Installation (macOS, Linux, Windows)
+
+#### Option 1: Global Link (Recommended for all platforms)
+Clone the repository to any directory of your choice and link it globally:
 
 ```bash
-# Clone repository
-git clone https://github.com/M1Vj/vsuee.git ~/.local/share/vsuee
-cd ~/.local/share/vsuee
+git clone https://github.com/M1Vj/vsuee-skill.git
+cd vsuee-skill
+npm link
+```
+The `vsuee` executable will now be available globally in your PATH across any terminal or shell.
 
-# Link executable to your PATH
+#### Option 2: Direct Symlink (macOS & Linux)
+```bash
+# Clone to your preferred directory (e.g. ~/.local/share/vsuee or ~/vsuee-skill)
+git clone https://github.com/M1Vj/vsuee-skill.git ~/vsuee-skill
+cd ~/vsuee-skill
+
+# Link executable to your local bin directory:
 mkdir -p ~/.local/bin
 ln -sf "$(pwd)/bin/vsuee.mjs" ~/.local/bin/vsuee
 
-# Ensure ~/.local/bin is in your PATH (e.g. in ~/.zshrc or ~/.bashrc):
-# export PATH="$HOME/.local/bin:$PATH"
+# Ensure ~/.local/bin is in your PATH (e.g. in ~/.bashrc or ~/.zshrc)
 ```
 
-Or install globally via npm:
-
+#### Option 3: Global npm Package Install
 ```bash
 npm install -g .
 ```

@@ -1529,10 +1529,14 @@ async function main() {
       case 'daemon': {
         const subAction = (getPositionalArg(1) || 'status').toLowerCase();
         if (process.platform !== 'darwin') {
-          console.error('\n[VSUEE Daemon] The daemon command manages macOS LaunchAgents via launchd.');
-          console.error('On Linux, you can schedule background syncs using cron or systemd:');
-          console.error('  crontab -e:');
+          console.error('\n[VSUEE Daemon] The `vsuee daemon` subcommand manages macOS LaunchAgents via launchd.');
+          console.error('For Linux (cron or systemd):');
+          console.error('  crontab -e');
           console.error('  */15 * * * * vsuee sync --download-new --notify >/dev/null 2>&1\n');
+          console.error('For Windows (Task Scheduler or PowerShell):');
+          console.error('  schtasks /create /tn "VSUEE-Watcher" /tr "vsuee sync --download-new --notify" /sc minute /mo 15\n');
+          console.error('Or run the continuous cross-platform watcher directly in any terminal (macOS, Linux, Windows):');
+          console.error('  vsuee watch --interval 15 --download-new\n');
           process.exit(1);
         }
 
