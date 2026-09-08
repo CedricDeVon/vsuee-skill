@@ -23,22 +23,30 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Stage Release Build
-        run: npm run workflow:stage-release
+      - name: Build Package
+        run: |
+          npm run output:cleanup
+          npm run output:setup
+          npm run build:release:package
+          npm run test:pre-npm-deployment
 
-      - name: Local Package Installation
-        run: npm run deploy:local:release
+      - name: Deploy Local Package
+        run: |
+          npm run clean:local:release
+          npm run deploy:local:release
 
-      - name: Global Package Installation
-        run: npm run deploy:global:release
+      - name: Deploy Global Package
+        run: |
+          npm run clean:global:release
+          npm run deploy:global:release
 
-      - name: Install Locally Via ${{ matrix.package-manager }}
+      - name: Install Local Package Via ${{ matrix.package-manager }}
         shell: bash
         run: |
           npm init -y
           npm install ${{ matrix.output-build-release-package-path }}
 
-      - name: Install Globally Via ${{ matrix.package-manager }}
+      - name: Install Global Package Via ${{ matrix.package-manager }}
         shell: bash
         run: |
           npm init -y
