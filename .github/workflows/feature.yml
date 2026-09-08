@@ -5,13 +5,15 @@ on:
     branches: [feat/**]
 
 jobs:
-  test-installation:
+  test-local-installation:
+    name: Test Installation | ${{ matrix.node-version }} | ${{ matrix.os }} | ${{ matrix.package-manager }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['18', '20', '22']
         package-manager: [npm]
+        output-build-release-package-path: [.output/build/release/package]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -30,17 +32,22 @@ jobs:
       - name: Global Package Installation
         run: npm run deploy:global:release
 
-      - name: Install Via ${{ matrix.package-manager }}
+      - name: Install Locally Via ${{ matrix.package-manager }}
         shell: bash
         run: |
           npm init -y
-          npm install .output/build/release/package
-          npm install -g .output/build/release/package
+          npm install ${{ output-build-release-package-path }}
 
-      - name: Verify Local CLI Binary
+      - name: Install Globally Via ${{ matrix.package-manager }}
+        shell: bash
+        run: |
+          npm init -y
+          npm install -g ${{ output-build-release-package-path }}
+
+      - name: Verify Local Package Installation
         shell: bash
         run: npx vsuee --help
 
-      - name: Verify Global CLI Binary
+      - name: Verify Global Package Installation
         shell: bash
         run: vsuee --help
