@@ -8,7 +8,7 @@ env:
   OUTPUT_BUILD_RELEASE_PACKAGE_PATH: .output/build/release/package
 
 jobs:
-  stage-release:
+  stage-release: # Single-executing job
     name: Build Release
     runs-on: ubuntu-latest
     steps:
@@ -102,7 +102,7 @@ jobs:
         shell: bash
         run: bun add "${{ github.workspace }}/staged-package"
 
-      - name: Debug Binary Path
+      - name: Debug Binary Path  # Used to fix path-not-found issues within github actions
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: |
@@ -150,7 +150,7 @@ jobs:
           name: staged-release
           path: staged-package
 
-      - name: Enable Execution
+      - name: Enable Execution  # github actions may not recognize certain files as 'authorized' for execution
         shell: bash
         run: chmod +x "${{ github.workspace }}/staged-package/bin/vsuee.mjs"
 
@@ -168,7 +168,7 @@ jobs:
         with:
           version: latest
 
-      - name: Configure 'pnpm' Globals
+      - name: Configure 'pnpm' Globals # pnpm cli specific setup to keep github actions satisfied
         if: matrix.package-manager == 'pnpm'
         shell: bash
         run: |
@@ -222,7 +222,7 @@ jobs:
         shell: bash
         run: echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
 
-      - name: Debug Binary Path
+      - name: Debug Binary Path # Used to fix path-not-found issues within github actions
         shell: bash
         run: |
           echo "PATH: $PATH"
