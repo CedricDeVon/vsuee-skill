@@ -4,20 +4,147 @@ on:
   push:
     branches: [feat/**]
 
+env:
+  OUTPUT_BUILD_RELEASE_PACKAGE_PATH: .output/build/release/package
+
 jobs:
+  stage-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build Package
+        shell: bash
+        run: |
+          npm run output:cleanup
+          npm run output:setup
+          npm run build:release:package
+          npm run test:pre-npm-deployment
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: staged-release
+          path: ${{ env.OUTPUT_BUILD_RELEASE_PACKAGE_PATH }}
+
   test-local-installation:
-    name: Test Installation | ${{ matrix.node-version }} | ${{ matrix.os }} | ${{ matrix.package-manager }}
+    needs: stage-release
+    name: Test Local Install | ${{ matrix.node-version }} | ${{ matrix.os }} | ${{ matrix.package-manager }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['18', '20', '22']
         package-manager: [npm, pnpm, yarn, bun]
-        output-build-release-package-path: [.output/build/release/package]
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: staged-release
+          path: staged-package
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Enable 'yarn' or 'pnpm' Corepack
+        if: matrix.package-manager == 'pnpm' || matrix.package-manager == 'yarn'
+        run: corepack enable
+
+      - name: Setup 'pnpm' Environment
+        if: matrix.package-manager == 'pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup 'bun' Environment
+        if: matrix.package-manager == 'bun'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Create Sandbox
+        shell: bash
+        run: |
+          mkdir -p "${{ runner.temp }}/sandbox"
+          cd "${{ runner.temp }}/sandbox"
+          npm init -y
+
+      - name: Install Local Package Via 'npm'
+        if: matrix.package-manager == 'npm'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: npm install "${{ github.workspace }}/staged-package"
+
+      - name: Install Local Package Via 'pnpm'
+        if: matrix.package-manager == 'pnpm'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: pnpm add "${{ github.workspace }}/staged-package"
+
+      - name: Install Local Package Via 'yarn'
+        if: matrix.package-manager == 'yarn'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: yarn add "${{ github.workspace }}/staged-package"
+
+      - name: Install Local Package Via 'bun'
+        if: matrix.package-manager == 'bun'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: bun add "${{ github.workspace }}/staged-package"
+
+      - name: Debug Local Binary
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: |
+          echo "PATH: $PATH"
+          ls -la node_modules/.bin/ 2>/dev/null | grep vsuee || echo "vsuee not in node_modules/.bin"
+
+      - name: Verify Local Package Installation Via 'npm'
+        if: matrix.package-manager == 'npm'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: npx vsuee --help
+
+      - name: Verify Local Package Installation Via 'pnpm'
+        if: matrix.package-manager == 'pnpm'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: pnpm exec vsuee --help
+
+      - name: Verify Local Package Installation Via 'yarn'
+        if: matrix.package-manager == 'yarn'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: yarn vsuee --help
+
+      - name: Verify Local Package Installation Via 'bun'
+        if: matrix.package-manager == 'bun'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: bunx vsuee --help
+
+  test-global-installation:
+    needs: stage-release
+    name: Test Global Install | ${{ matrix.node-version }} | ${{ matrix.os }} | ${{ matrix.package-manager }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ['18', '20', '22']
+        package-manager: [npm, pnpm, yarn, bun]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: staged-release
+          path: staged-package
 
       - uses: actions/setup-node@v4
         with:
@@ -47,90 +174,10 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Build Package
-        shell: bash
-        run: |
-          npm run output:cleanup
-          npm run output:setup
-          npm run build:release:package
-          npm run test:pre-npm-deployment
-
-      - name: Clean Local Package
-        shell: bash
-        run: npm run clean:local:release
-
-      - name: Clean Global Package
-        shell: bash
-        run: npm run clean:global:release
-
-      - name: Create Sandbox
-        shell: bash
-        run: |
-          mkdir -p "${{ runner.temp }}/sandbox"
-          cd "${{ runner.temp }}/sandbox"
-          npm init -y
-
-      - name: Install Local Package Via 'npm'
-        if: matrix.package-manager == 'npm'
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: npm install "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
-
-      - name: Install Local Package Via 'pnpm'
-        if: matrix.package-manager == 'pnpm'
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: pnpm add "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
-
-      - name: Install Local Package Via 'yarn'
-        if: matrix.package-manager == 'yarn'
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: yarn add "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
-
-      - name: Install Local Package Via 'bun'
-        if: matrix.package-manager == 'bun'
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: bun add "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
-
-      # - name: Debug
-      #   working-directory: ${{ runner.temp }}/sandbox
-      #   shell: bash
-      #   run: |
-      #     echo "PATH: $PATH"
-      #     ls -la node_modules/.bin/ 2>/dev/null | grep vsuee || echo "vsuee not in node_modules/.bin"
-      
-
-      - name: Verify Local Package Installation Via 'npm'
-        if: matrix.package-manager == 'npm'
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: npx vsuee --help
-
-      - name: Verify Local Package Installation Via 'pnpm'
-        if: matrix.package-manager == 'pnpm'
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: pnpm exec vsuee --help
-
-      - name: Verify Local Package Installation Via 'yarn'
-        if: matrix.package-manager == 'yarn'
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: yarn vsuee --help
-
-      - name: Verify Local Package Installation Via 'bun'
-        if: matrix.package-manager == 'bun'
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: bunx vsuee --help
-
-
       - name: Install Global Package Via 'npm'
         if: matrix.package-manager == 'npm'
         shell: bash
-        run: npm install -g "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
+        run: npm install -g "${{ github.workspace }}/staged-package"
 
       - name: Export 'npm' Global Bin To Unix PATH
         if: matrix.package-manager == 'npm' && runner.os != 'Windows'
@@ -145,14 +192,14 @@ jobs:
       - name: Install Global Package Via 'pnpm'
         if: matrix.package-manager == 'pnpm'
         shell: bash
-        run: pnpm add -g "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
+        run: pnpm add -g "${{ github.workspace }}/staged-package"
 
       - name: Install Global Package Via 'yarn'
         if: matrix.package-manager == 'yarn'
         shell: bash
-        run: yarn global add "file:${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
+        run: yarn global add "file:${{ github.workspace }}/staged-package"
 
-      - name: Export 'yarn' Globall Bin To PATH
+      - name: Export 'yarn' Global Bin To PATH
         if: matrix.package-manager == 'yarn'
         shell: bash
         run: echo "$(yarn global bin)" >> "$GITHUB_PATH"
@@ -160,18 +207,18 @@ jobs:
       - name: Install Global Package Via 'bun'
         if: matrix.package-manager == 'bun'
         shell: bash
-        run: bun add -g "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
+        run: bun add -g "${{ github.workspace }}/staged-package"
 
       - name: Export 'bun' Global Bin To PATH
         if: matrix.package-manager == 'bun'
         shell: bash
         run: echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
 
-      # - name: Debug
-      #   shell: bash
-      #   run: |
-      #     echo "PATH: $PATH"
-      #     which vsuee || echo "vsuee not found on PATH"
+      - name: Debug Global Binary
+        shell: bash
+        run: |
+          echo "PATH: $PATH"
+          which vsuee || echo "vsuee not found on PATH"
 
       - name: Verify Global Package Installation Via ${{ matrix.package-manager }}
         shell: bash
