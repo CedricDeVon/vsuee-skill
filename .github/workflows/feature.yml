@@ -12,7 +12,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['18', '20', '22']
-        package-manager: [npm]
+        package-manager: [npm, pnpm, yarn, bun]
         output-build-release-package-path: [.output/build/release/package]
 
     runs-on: ${{ matrix.os }}
@@ -23,39 +23,94 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Enable Corepack (pnpm/yarn)
+        if: matrix.package-manager == 'pnpm' || matrix.package-manager == 'yarn'
+        run: corepack enable
+
+      - name: Setup pnpm
+        if: matrix.package-manager == 'pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Bun
+        if: matrix.package-manager == 'bun'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Build Package
+        shell: bash
         run: |
           npm run output:cleanup
           npm run output:setup
           npm run build:release:package
           npm run test:pre-npm-deployment
 
-      - name: Deploy Local Package
-        run: |
-          npm run clean:local:release
-          npm run deploy:local:release
+      - name: Clean Local Package
+        shell: bash
+        run: npm run clean:local:release
 
-      - name: Deploy Global Package
-        run: |
-          npm run clean:global:release
-          npm run deploy:global:release
+      - name: Clean Global Package
+        shell: bash
+        run: npm run clean:global:release
 
-      - name: Install Local Package Via ${{ matrix.package-manager }}
+      - name: Create Sandbox
         shell: bash
         run: |
+          mkdir -p "${{ runner.temp }}/sandbox"
+          cd "${{ runner.temp }}/sandbox"
           npm init -y
-          npm install ${{ matrix.output-build-release-package-path }}
 
-      - name: Install Global Package Via ${{ matrix.package-manager }}
+      - name: Install Local Package Via npm
+        if: matrix.package-manager == 'npm'
+        working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: |
-          npm init -y
-          npm install -g ${{ matrix.output-build-release-package-path }}
+        run: npm install "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
 
-      - name: Verify Local Package Installation
+      - name: Install Local Package Via pnpm
+        if: matrix.package-manager == 'pnpm'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: pnpm add "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
+
+      - name: Install Local Package Via yarn
+        if: matrix.package-manager == 'yarn'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: yarn add "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
+
+      - name: Install Local Package Via bun
+        if: matrix.package-manager == 'bun'
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: bun add "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
+
+      - name: Verify Local Package Installation Via ${{ matrix.package-manager }}
+        working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: npx vsuee --help
 
-      - name: Verify Global Package Installation
+      - name: Install Global Package Via npm
+        if: matrix.package-manager == 'npm'
+        shell: bash
+        run: npm install -g "${{ matrix.output-build-release-package-path }}"
+
+      - name: Install Global Package Via pnpm
+        if: matrix.package-manager == 'pnpm'
+        shell: bash
+        run: pnpm add -g "${{ matrix.output-build-release-package-path }}"
+
+      - name: Install Global Package Via yarn
+        if: matrix.package-manager == 'yarn'
+        shell: bash
+        run: yarn global add "file:${{ matrix.output-build-release-package-path }}"
+
+      - name: Install Global Package Via bun
+        if: matrix.package-manager == 'bun'
+        shell: bash
+        run: bun add -g "${{ matrix.output-build-release-package-path }}"
+
+      - name: Verify Global Package Installation Via ${{ matrix.package-manager }}
         shell: bash
         run: vsuee --help
