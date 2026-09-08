@@ -42,7 +42,7 @@ jobs:
         shell: bash
         run: |
           npm init -y
-          npm install -g ${{ output-build-release-package-path }}
+          npm install -g ${{ matrix.output-build-release-package-path }}
 
       - name: Verify Local Package Installation
         shell: bash
