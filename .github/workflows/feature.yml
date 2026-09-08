@@ -141,7 +141,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: staged-release
           path: staged-package
@@ -150,7 +150,7 @@ jobs:
         shell: bash
         run: chmod +x "${{ github.workspace }}/staged-package/bin/vsuee.mjs"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
 
