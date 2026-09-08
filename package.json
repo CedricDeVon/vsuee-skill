@@ -1,6 +1,6 @@
 {
   "name": "vsuee-skill",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "High-speed CLI toolkit and AI agent skill for the Visayas State University E-Learning Environment (VSUEE Moodle).",
   "keywords": [
     "vsuee",
@@ -47,16 +47,16 @@
     "test:unit": "node --test test/moodle-client.test.mjs test/moodle-client-downloads.test.mjs test/session-auth.test.mjs test/sync-manager.test.mjs test/browser-runner.test.mjs",
     "test:all": "node --test test/*.test.mjs",
     "test:live": "VSUEE_LIVE_TEST=1 node --test test/integration.test.mjs",
-    "test:pre-npm-deployment": "npm pack .output/build/release/source --dry-run",
+    "test:pre-npm-deployment": "npm pack .output/build/release/src --dry-run",
     "output:cleanup": "rm -r .output",
-    "output:setup": "mkdir -p .output/build/release/package .output/build/release/source",
-    "install:package:local": "npm install .output/build/release/source",
-    "uninstall:package": "npm uninstall vsuee-skill ; npm uninstall vsuee-skill",
-    "build:release:source": "cp -r package.json LICENSE plugin.json AGENTS.md README.md bin lib skills .output/build/release/source",
-    "build:release:package": "npm pack .output/build/release/source --pack-destination .output/build/release/package",
-    "workflow:stage-release": "npm run output:cleanup ; npm run output:setup ; npm run build:release:source ; npm run test:pre-npm-deployment ; npm run build:release:package",
-    "workflow:local-deploy": "npm run workflow:stage-release ; npm run uninstall:package && npm run install:package:local",
-    "workflow:npm-deploy": ""
+    "output:setup": "mkdir -p .output/build/release/src",
+    "clean:local:release": "npm uninstall vsuee-skill",
+    "deploy:local:release": "npm install .output/build/release/src",
+    "deploy:npm:release": "npm publish --cwd .output/build/release/src",
+    "build:release:source": "cp -r package.json LICENSE plugin.json AGENTS.md README.md bin lib skills .output/build/release/src",
+    "workflow:stage-release": "npm run output:cleanup ; npm run output:setup ; npm run build:release:source ; npm run test:pre-npm-deployment",
+    "workflow:local-deploy": "npm run workflow:stage-release ; npm run clean:local:release && npm run deploy:local:release",
+    "workflow:npm-deploy": "(npm run deploy:npm:release) || (npm login && npm whoami && npm run deploy:npm:release)"
   },
   "peerDependencies": {
     "playwright": "^1.40.0"
