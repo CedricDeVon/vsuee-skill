@@ -52,7 +52,7 @@
     "output:setup": "mkdir -p .output/build/release/src",
     "clean:local:release": "npm uninstall vsuee-skill",
     "deploy:local:release": "npm install .output/build/release/src",
-    "deploy:npm:release": "npm publish --cwd .output/build/release/src",
+    "deploy:npm:release": "npm publish .output/build/release/src",
     "build:release:source": "cp -r package.json LICENSE plugin.json AGENTS.md README.md bin lib skills .output/build/release/src",
     "workflow:stage-release": "npm run output:cleanup ; npm run output:setup ; npm run build:release:source ; npm run test:pre-npm-deployment",
     "workflow:local-deploy": "npm run workflow:stage-release ; npm run clean:local:release && npm run deploy:local:release",
