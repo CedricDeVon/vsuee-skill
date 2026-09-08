@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           npm init -y
-          npm install ${{ output-build-release-package-path }}
+          npm install ${{ matrix.output-build-release-package-path }}
 
       - name: Install Globally Via ${{ matrix.package-manager }}
         shell: bash
