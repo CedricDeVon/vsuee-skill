@@ -128,7 +128,7 @@ jobs:
         if: matrix.package-manager == 'bun'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: bun run vsuee --help
+        run: bunx --package vsuee-skill -- vsuee --help
 
   test-global-installation:
     needs: stage-release
