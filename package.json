@@ -55,9 +55,11 @@
     "clean:all:release": "npm run clean:local:release ; npm run clean:global:release",
     "build:release:package": "cp -r package.json LICENSE plugin.json AGENTS.md README.md bin lib skills .output/build/release/package",
     "deploy:local:release": "npm install .output/build/release/package",
+    "deploy:global:release": "npm install -g .output/build/release/package",
     "deploy:npm:release": "npm publish .output/build/release/package",
     "workflow:stage-release": "npm run output:cleanup ; npm run output:setup ; npm run build:release:package ; npm run test:pre-npm-deployment",
     "workflow:local-deploy": "npm run workflow:stage-release ; npm run clean:local:release && npm run deploy:local:release",
+    "workflow:global-deploy": "npm run workflow:stage-release ; npm run clean:global:release && npm run deploy:global:release",
     "workflow:npm-deploy": "(npm run deploy:npm:release) || (npm login && npm whoami && npm run deploy:npm:release)"
   },
   "peerDependencies": {

@@ -21,22 +21,26 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Create Installation Sandbox
-        shell: bash
-        run: mkdir -p "${{ runner.temp }}/sandbox"
+      - name: Stage Release Build
+        run: npm run workflow:stage-release
 
       - name: Local Package Installation
-        working-directory: ${{ runner.temp }}/sandbox
-        run: npm run workflow:local-deploy
+        run: npm run deploy:local:release
+
+      - name: Global Package Installation
+        run: npm run deploy:global:release
 
       - name: Install Via ${{ matrix.package-manager }}
-        working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: |
           npm init -y
-          npm install "${{ steps.tarball.outputs.path }}"
+          npm install .output/build/release/package
+          npm install -g .output/build/release/package
 
-      - name: Verify CLI Binary
-        working-directory: ${{ runner.temp }}/sandbox
+      - name: Verify Local CLI Binary
         shell: bash
         run: npx vsuee --help
+
+      - name: Verify Global CLI Binary
+        shell: bash
+        run: vsuee --help
