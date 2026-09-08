@@ -6,7 +6,6 @@ on:
 
 jobs:
   test-installation:
-    needs: stage-package
     strategy:
       fail-fast: false
       matrix:
