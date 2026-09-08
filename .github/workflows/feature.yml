@@ -21,11 +21,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: npm run workflow:local-deploy
-
       - name: Create Installation Sandbox
         shell: bash
         run: mkdir -p "${{ runner.temp }}/sandbox"
+
+      - name: Local Package Installation
+        working-directory: ${{ runner.temp }}/sandbox
+        run: npm run workflow:local-deploy
 
       - name: Install Via ${{ matrix.package-manager }}
         working-directory: ${{ runner.temp }}/sandbox
