@@ -9,6 +9,7 @@ env:
 
 jobs:
   stage-release:
+    name: Build Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -127,7 +128,7 @@ jobs:
         if: matrix.package-manager == 'bun'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: bunx vsuee --help
+        run: bun run vsuee --help
 
   test-global-installation:
     needs: stage-release
@@ -145,6 +146,10 @@ jobs:
         with:
           name: staged-release
           path: staged-package
+
+      - name: Ensure Executable Bin Script
+        shell: bash
+        run: chmod +x "${{ github.workspace }}/staged-package/bin/vsuee.mjs"
 
       - uses: actions/setup-node@v4
         with:
