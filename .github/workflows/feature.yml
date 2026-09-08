@@ -1,0 +1,41 @@
+name: Feature
+
+on:
+  push:
+    branches: [feat/**]
+
+jobs:
+  test-installation:
+    needs: stage-package
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ['18', '20', '22']
+        package-manager: [npm]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: npm run workflow:local-deploy
+
+      - name: Create Installation Sandbox
+        shell: bash
+        run: mkdir -p "${{ runner.temp }}/sandbox"
+
+      - name: Install Via ${{ matrix.package-manager }}
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: |
+          npm init -y
+          npm install "${{ steps.tarball.outputs.path }}"
+
+      - name: Verify CLI Binary
+        working-directory: ${{ runner.temp }}/sandbox
+        shell: bash
+        run: npx vsuee --help
