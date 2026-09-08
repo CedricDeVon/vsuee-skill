@@ -33,6 +33,14 @@ jobs:
         with:
           version: latest
 
+      - name: Configure pnpm global bin dir
+        if: matrix.package-manager == 'pnpm'
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.local/share/pnpm"
+          pnpm config set global-bin-dir "$HOME/.local/share/pnpm"
+          echo "$HOME/.local/share/pnpm" >> "$GITHUB_PATH"
+
       - name: Setup Bun
         if: matrix.package-manager == 'bun'
         uses: oven-sh/setup-bun@v2
@@ -90,26 +98,26 @@ jobs:
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: npx vsuee --help
-
+      
       - name: Install Global Package Via npm
         if: matrix.package-manager == 'npm'
         shell: bash
-        run: npm install -g "${{ matrix.output-build-release-package-path }}"
+        run: npm install -g "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
 
       - name: Install Global Package Via pnpm
         if: matrix.package-manager == 'pnpm'
         shell: bash
-        run: pnpm add -g "${{ matrix.output-build-release-package-path }}"
+        run: pnpm add -g "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
 
       - name: Install Global Package Via yarn
         if: matrix.package-manager == 'yarn'
         shell: bash
-        run: yarn global add "file:${{ matrix.output-build-release-package-path }}"
+        run: yarn global add "file:${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
 
       - name: Install Global Package Via bun
         if: matrix.package-manager == 'bun'
         shell: bash
-        run: bun add -g "${{ matrix.output-build-release-package-path }}"
+        run: bun add -g "${{ github.workspace }}/${{ matrix.output-build-release-package-path }}"
 
       - name: Verify Global Package Installation Via ${{ matrix.package-manager }}
         shell: bash
