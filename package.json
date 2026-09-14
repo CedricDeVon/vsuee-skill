@@ -49,7 +49,7 @@
     "test:all": "node --test test/*.test.mjs",
     "test:live": "VSUEE_LIVE_TEST=1 node --test test/integration.test.mjs",
     "test:pre-npm-deployment": "npm pack .output/build/release/package --dry-run",
-    "test:release-package": "node test/release-package.test.mjs .output/build/release/package",
+    "test:release-package-content": "node test/release-package-content.test.mjs .output/build/release/package",
     "output:cleanup": "node -e \"require('fs').rmSync('.output', { recursive: true, force: true })\"",
     "output:setup": "node -e \"for (const path of ['.output/build/release/package', '.output/build/release/dist']) require('fs').mkdirSync(path, { recursive: true })\"",
     "build:release:package": "node -e \"const fs=require('fs'); const dst='.output/build/release/package'; for (const f of ['package.json','LICENSE','plugin.json','README.md','bin','lib','skills']) fs.cpSync(f, dst + '/' + f, { recursive: true });\"",
@@ -61,7 +61,7 @@
     "clean:local:release": "npm uninstall vsuee-skill",
     "clean:global:release": "npm uninstall -g vsuee-skill",
     "clean:all:release": "npm run clean:local:release ; npm run clean:global:release",
-    "workflow:stage-release": "npm run output:cleanup && npm run output:setup && npm run build:release:package && npm run build:release:dist && npm run rename:release:dist && npm run test:release-package",
+    "workflow:stage-release": "npm run output:cleanup && npm run output:setup && npm run build:release:package && npm run build:release:dist && npm run rename:release:dist && npm run test:release-package-content",
     "workflow:local-deploy": "npm run workflow:stage-release && npm run clean:local:release && npm run deploy:local:release",
     "workflow:global-deploy": "npm run workflow:stage-release && npm run clean:global:release && npm run deploy:global:release",
     "workflow:npm-deploy": "(npm run deploy:npm:release) || (npm login && npm whoami && npm run deploy:npm:release)"
