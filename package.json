@@ -37,7 +37,8 @@
     "skills",
     "plugin.json",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "package.json"
   ],
   "engines": {
     "node": ">=18.0.0"
@@ -50,7 +51,7 @@
     "test:pre-npm-deployment": "npm pack .output/build/release/package --dry-run",
     "output:cleanup": "node -e \"require('fs').rmSync('.output', { recursive: true, force: true })\"",
     "output:setup": "node -e \"require('fs').mkdirSync('.output/build/release/package', { recursive: true })\"",
-    "build:release:package": "node -e \"const fs=require('fs'); const dst='.output/build/release/package'; for (const f of ['package.json','LICENSE','plugin.json','AGENTS.md','README.md','bin','lib','skills']) fs.cpSync(f, dst + '/' + f, { recursive: true });\"",
+    "build:release:package": "node -e \"const fs=require('fs'); const dst='.output/build/release/package'; for (const f of ['package.json','LICENSE','plugin.json','README.md','bin','lib','skills']) fs.cpSync(f, dst + '/' + f, { recursive: true });\"",
     "clean:local:release": "npm uninstall vsuee-skill",
     "clean:global:release": "npm uninstall -g vsuee-skill",
     "clean:all:release": "npm run clean:local:release ; npm run clean:global:release",
