@@ -41,7 +41,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@7930b1c2abaa49bbe596cd826c3c89aef350131
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: staged-release
           path: staged-package
@@ -144,7 +144,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@7930b1c2abaa49bbe596cd826c3c89aef350131
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: staged-release
           path: staged-package
