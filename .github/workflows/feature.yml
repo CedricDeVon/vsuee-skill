@@ -54,7 +54,7 @@ jobs:
         if: matrix.package-manager == 'pnpm'
         run: |
           corepack enable
-          corepack prepare pnpm@latest --activate
+          corepack prepare pnpm@10.15.1 --activate
 
       - name: Setup 'yarn'
         if: matrix.package-manager == 'yarn'
@@ -102,12 +102,12 @@ jobs:
         shell: bash
         run: bun add "${{ github.workspace }}/staged-package"
 
-      - name: Debug Binary Path  # Used to fix path-not-found issues within github actions
-        working-directory: ${{ runner.temp }}/sandbox
-        shell: bash
-        run: |
-          echo "PATH: $PATH"
-          ls -la node_modules/.bin/ 2>/dev/null | grep vsuee || echo "vsuee not in node_modules/.bin"
+      # - name: Debug Binary Path  # Used to fix path-not-found issues within github actions
+      #   working-directory: ${{ runner.temp }}/sandbox
+      #   shell: bash
+      #   run: |
+      #     echo "PATH: $PATH"
+      #     ls -la node_modules/.bin/ 2>/dev/null | grep vsuee || echo "vsuee not in node_modules/.bin"
 
       - name: Verify Installation 'npm'
         if: matrix.package-manager == 'npm'
@@ -163,7 +163,7 @@ jobs:
         if: matrix.package-manager == 'pnpm'
         run: |
           corepack enable
-          corepack prepare pnpm@latest --activate
+          corepack prepare pnpm@10.15.1 --activate
 
       - name: Setup 'yarn'
         if: matrix.package-manager == 'yarn'
@@ -217,6 +217,12 @@ jobs:
         run: |
           Set-Location "${{ github.workspace }}/staged-package"
           pnpm add -g .
+
+      - name: Export 'pnpm' Bin To PATH
+        if: matrix.package-manager == 'pnpm'
+        shell: bash
+        run: |
+          pnpm bin -g >> "$GITHUB_PATH"
 
       - name: Install Via 'yarn'
         if: matrix.package-manager == 'yarn'
