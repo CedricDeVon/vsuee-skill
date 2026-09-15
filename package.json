@@ -57,6 +57,7 @@
     "deploy:local:release": "npm install .output/build/release/dist/vsuee-skill.tgz",
     "deploy:global:release": "npm install -g .output/build/release/dist/vsuee-skill.tgz",
     "deploy:npm:release": "npm publish .output/build/release/package",
+    "deploy:staged:npm:release": "npm stage publish .output/build/release/package",
     "clean:local:release": "npm uninstall vsuee-skill",
     "clean:global:release": "npm uninstall -g vsuee-skill",
     "clean:all:release": "node scripts/run-scripts.mjs clean:local:release clean:global:release",
