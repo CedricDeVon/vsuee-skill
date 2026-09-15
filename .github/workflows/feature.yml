@@ -52,13 +52,14 @@ jobs:
 
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b
-        with:
-          version: 10.15.1
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.1 --activate
 
-      - name: Enable 'yarn' or 'pnpm' Corepack
-        if: matrix.package-manager == 'pnpm' || matrix.package-manager == 'yarn'
-        run: corepack enable
+      - name: Setup 'yarn'
+        if: matrix.package-manager == 'yarn'
+        run: |
+          corepack enable
 
       - name: Setup 'bun'
         if: matrix.package-manager == 'bun'
@@ -156,16 +157,17 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ matrix.node-version }}
-
+    
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b
-        with:
-          version: 10.15.1
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.1 --activate
 
-      - name: Enable 'yarn' or 'pnpm' Corepack
-        if: matrix.package-manager == 'pnpm' || matrix.package-manager == 'yarn'
-        run: corepack enable
+      - name: Setup 'yarn'
+        if: matrix.package-manager == 'yarn'
+        run: |
+          corepack enable
 
       - name: Configure 'pnpm' Globals # pnpm cli specific setup to keep github actions satisfied
         if: matrix.package-manager == 'pnpm'
