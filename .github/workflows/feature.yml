@@ -12,8 +12,8 @@ jobs:
     name: Build Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@<CHECKOUT_COMMIT_SHA>
+      - uses: actions/setup-node@<CHECKOUT_COMMIT_SHA>
         with:
           node-version: '22'
 
@@ -24,7 +24,7 @@ jobs:
           npm run tmp:setup
           npm run build:release:package
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@<CHECKOUT_COMMIT_SHA>
         with:
           name: staged-release
           path: ${{ env.OUTPUT_BUILD_RELEASE_PACKAGE_PATH }}
@@ -41,12 +41,12 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@<CHECKOUT_COMMIT_SHA>
         with:
           name: staged-release
           path: staged-package
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@<CHECKOUT_COMMIT_SHA>
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -56,13 +56,13 @@ jobs:
 
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@<CHECKOUT_COMMIT_SHA>
         with:
           version: latest
 
       - name: Setup 'bun'
         if: matrix.package-manager == 'bun'
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@<CHECKOUT_COMMIT_SHA>
         with:
           bun-version: latest
 
@@ -144,7 +144,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@<CHECKOUT_COMMIT_SHA>
         with:
           name: staged-release
           path: staged-package
@@ -153,7 +153,7 @@ jobs:
         shell: bash
         run: chmod +x "${{ github.workspace }}/staged-package/bin/vsuee.mjs"
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@<CHECKOUT_COMMIT_SHA>
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -163,7 +163,7 @@ jobs:
 
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@<CHECKOUT_COMMIT_SHA>
         with:
           version: latest
 
@@ -177,7 +177,7 @@ jobs:
 
       - name: Setup 'bun'
         if: matrix.package-manager == 'bun'
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@<CHECKOUT_COMMIT_SHA>
         with:
           bun-version: latest
 

@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@<CHECKOUT_COMMIT_SHA>
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@<CHECKOUT_COMMIT_SHA>
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
@@ -33,29 +33,24 @@ jobs:
         run: npm ci
 
       - name: Setup Temporary Filesystem
-        shell: bash
         run: |
           npm run tmp:cleanup
           npm run tmp:setup
       
       - name: Build Release Package
-        shell: bash
         run: |
           npm run build:release:package
           npm run build:release:dist
           npm run rename:release:dist
 
       - name: Testing Release Package Content
-        shell: bash
         run: |
           npm run test:release-package-content
 
       - name: Testing Local Release Installation
-        shell: bash
         run: |
           npm run test:release:local-installation
 
       - name: Publish Staged Package To NPM
-        shell: bash
         run: |
           npm run deploy:staged:npm:release
