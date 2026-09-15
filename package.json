@@ -1,6 +1,6 @@
 {
   "name": "vsuee-skill",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "High-speed CLI toolkit and AI agent skill for the Visayas State University E-Learning Environment (VSUEE Moodle).",
   "keywords": [
     "vsuee",
