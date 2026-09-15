@@ -1,6 +1,6 @@
 {
   "name": "vsuee-skill",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "High-speed CLI toolkit and AI agent skill for the Visayas State University E-Learning Environment (VSUEE Moodle).",
   "keywords": [
     "vsuee",
@@ -56,14 +56,14 @@
     "rename:release:dist": "node scripts/rename-filesystem-path.mjs .output/build/release/dist \"*.tgz\" vsuee-skill.tgz",
     "deploy:local:release": "npm install .output/build/release/dist/vsuee-skill.tgz",
     "deploy:global:release": "npm install -g .output/build/release/dist/vsuee-skill.tgz",
-    "deploy:npm:release": "npm publish .output/build/release/package",
     "deploy:staged:npm:release": "npm stage publish .output/build/release/package",
     "clean:local:release": "npm uninstall vsuee-skill",
     "clean:global:release": "npm uninstall -g vsuee-skill",
     "clean:all:release": "node scripts/run-scripts.mjs clean:local:release clean:global:release",
     "workflow:stage-release": "node scripts/run-scripts.mjs output:cleanup output:setup build:release:package build:release:dist rename:release:dist test:release-package-content",
     "workflow:local-deploy": "node scripts/run-scripts.mjs workflow:stage-release clean:local:release deploy:local:release",
-    "workflow:global-deploy": "node scripts/run-scripts.mjs workflow:stage-release clean:global:release deploy:global:release"
+    "workflow:global-deploy": "node scripts/run-scripts.mjs workflow:stage-release clean:global:release deploy:global:release",
+    "workflow:npm-deploy": "node scripts/run-scripts.mjs workflow:stage-release clean:global:release deploy:staged:npm:release"
   },
   "peerDependencies": {
     "playwright": "^1.40.0"

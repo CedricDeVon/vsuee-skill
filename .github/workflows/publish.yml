@@ -1,9 +1,12 @@
-name: Publish
+name: NPM Publish
 
 on:
+  # Uncomment when merged to 'main' branch
   # push:
   #   tags:
   #     - "v*"
+
+  # Demo purposes
   push:
     branches: [feat/**]
 
@@ -26,16 +29,28 @@ jobs:
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci
 
-      - name: Build Package
+      - name: Output Filesystem Setup
         shell: bash
         run: |
           npm run output:cleanup
           npm run output:setup
+      
+      - name: Build Release Package
+        shell: bash
+        run: |
           npm run build:release:package
+          npm run build:release:dist
+          npm run rename:release:dist
 
-      - name: Publish Package To NPM
+      - name: Pre-Deployment Tests
+        shell: bash
+        run: |
+          npm run test:release-package-content
+
+      - name: Publish Staged Package To NPM
+        shell: bash
         run: |
           npm run deploy:staged:npm:release
