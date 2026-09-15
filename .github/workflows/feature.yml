@@ -54,7 +54,7 @@ jobs:
         if: matrix.package-manager == 'pnpm'
         run: |
           corepack enable
-          corepack prepare pnpm@10.15.1 --activate
+          corepack prepare pnpm@latest --activate
 
       - name: Setup 'yarn'
         if: matrix.package-manager == 'yarn'
@@ -163,7 +163,7 @@ jobs:
         if: matrix.package-manager == 'pnpm'
         run: |
           corepack enable
-          corepack prepare pnpm@10.15.1 --activate
+          corepack prepare pnpm@latest --activate
 
       - name: Setup 'yarn'
         if: matrix.package-manager == 'yarn'
@@ -207,9 +207,16 @@ jobs:
         run: echo "$(npm config get prefix)" >> "$GITHUB_PATH"
 
       - name: Install Via 'pnpm'
-        if: matrix.package-manager == 'pnpm'
+        if: matrix.package-manager == 'pnpm' && runner.os != 'Windows'
         shell: bash
         run: pnpm add -g "${{ github.workspace }}/staged-package"
+
+      - name: Install Via 'pnpm'
+        if: matrix.package-manager == 'pnpm' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Set-Location "${{ github.workspace }}/staged-package"
+          pnpm add -g .
 
       - name: Install Via 'yarn'
         if: matrix.package-manager == 'yarn'
