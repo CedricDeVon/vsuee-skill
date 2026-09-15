@@ -151,12 +151,13 @@ jobs:
           path: staged-package
 
       - name: Enable Execution  # github actions may not recognize certain files as 'authorized' for execution
+        if: runner.os != 'Windows'
         shell: bash
         run: chmod +x "${{ github.workspace }}/staged-package/bin/vsuee.mjs"
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ matrix.node-version }}          
     
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
