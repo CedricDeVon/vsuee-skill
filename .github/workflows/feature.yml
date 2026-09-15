@@ -5,7 +5,7 @@ on:
     branches: [feat/**]
 
 env:
-  OUTPUT_BUILD_RELEASE_PACKAGE_PATH: .output/build/release/package
+  OUTPUT_BUILD_RELEASE_PACKAGE_PATH: .tmp/build/release/package
 
 jobs:
   stage-release: # Single-executing job
@@ -17,11 +17,11 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Build Package
+      - name: Build Release Package
         shell: bash
         run: |
-          npm run output:cleanup
-          npm run output:setup
+          npm run tmp:cleanup
+          npm run tmp:setup
           npm run build:release:package
 
       - uses: actions/upload-artifact@v6
