@@ -230,6 +230,31 @@ jobs:
           echo "PATH: $PATH"
           which vsuee || echo "vsuee not found on PATH"
 
+      - name: Debug pnpm Global Installation
+        if: matrix.package-manager == 'pnpm'
+        shell: pwsh
+        run: |
+          Write-Host "pnpm version:"
+          pnpm --version
+
+          Write-Host "global-bin-dir:"
+          pnpm config get global-bin-dir
+
+          Write-Host "global-dir:"
+          pnpm config get global-dir
+
+          Write-Host "pnpm root:"
+          pnpm root -g
+
+          Write-Host "PATH:"
+          $env:PATH
+
+          Write-Host "LocalAppData:"
+          $env:LOCALAPPDATA
+
+          Write-Host "Potential binaries:"
+          Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
+
       - name: Verify Installation Via ${{ matrix.package-manager }}
         if: runner.os != 'Windows'
         shell: bash
