@@ -36,7 +36,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: ['18', '20', '22']
+        node-version: ['18', '20', '22', '24', '26']
         package-manager: [npm, pnpm, yarn, bun]
 
     runs-on: ${{ matrix.os }}
@@ -102,13 +102,6 @@ jobs:
         shell: bash
         run: bun add "${{ github.workspace }}/staged-package"
 
-      # - name: Debug Binary Path  # Used to fix path-not-found issues within github actions
-      #   working-directory: ${{ runner.temp }}/sandbox
-      #   shell: bash
-      #   run: |
-      #     echo "PATH: $PATH"
-      #     ls -la node_modules/.bin/ 2>/dev/null | grep vsuee || echo "vsuee not in node_modules/.bin"
-
       - name: Verify Installation 'npm'
         if: matrix.package-manager == 'npm'
         working-directory: ${{ runner.temp }}/sandbox
@@ -140,7 +133,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: ['18', '20', '22']
+        node-version: ['18', '20', '22', '24', '26']
         package-manager: [npm, pnpm, yarn, bun]
 
     runs-on: ${{ matrix.os }}
@@ -159,31 +152,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}          
     
-      - name: Setup 'pnpm'
-        if: matrix.package-manager == 'pnpm'
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.15.1 --activate
-
       - name: Setup 'yarn'
         if: matrix.package-manager == 'yarn'
         run: |
           corepack enable
-
-      - name: Configure 'pnpm' Globals # pnpm cli specific setup to keep github actions satisfied
-        if: matrix.package-manager == 'pnpm' && runner.os != 'Windows'
-        shell: bash
-        run: |
-          pnpm config set global-bin-dir "$HOME/.local/share/pnpm"
-          echo "$HOME/.local/share/pnpm" >> "$GITHUB_PATH"
-
-      - name: Configure 'pnpm' Globals
-        if: matrix.package-manager == 'pnpm' && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $pnpmBin = "$env:LOCALAPPDATA\pnpm"
-          pnpm config set global-bin-dir "$pnpmBin"
-          "$pnpmBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Setup 'bun'
         if: matrix.package-manager == 'bun'
@@ -206,24 +178,6 @@ jobs:
         shell: bash
         run: echo "$(npm config get prefix)" >> "$GITHUB_PATH"
 
-      - name: Install Via 'pnpm'
-        if: matrix.package-manager == 'pnpm' && runner.os != 'Windows'
-        shell: bash
-        run: pnpm add -g "${{ github.workspace }}/staged-package"
-
-      - name: Install Via 'pnpm'
-        if: matrix.package-manager == 'pnpm' && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Set-Location "${{ github.workspace }}/staged-package"
-          pnpm add -g .
-
-      - name: Export 'pnpm' Bin To PATH
-        if: matrix.package-manager == 'pnpm'
-        shell: bash
-        run: |
-          pnpm bin -g >> "$GITHUB_PATH"
-
       - name: Install Via 'yarn'
         if: matrix.package-manager == 'yarn'
         shell: bash
@@ -243,63 +197,6 @@ jobs:
         if: matrix.package-manager == 'bun'
         shell: bash
         run: echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
-
-      # - name: Debug Binary Path # Used to fix path-not-found issues within github actions
-      #   shell: bash
-      #   run: |
-      #     echo "PATH: $PATH"
-      #     which vsuee || echo "vsuee not found on PATH"
-
-      # - name: Debug pnpm Global Installation
-      #   if: matrix.package-manager == 'pnpm'
-      #   shell: pwsh
-      #   run: |
-      #     Write-Host "pnpm version:"
-      #     pnpm --version
-
-      #     Write-Host "global-bin-dir:"
-      #     pnpm config get global-bin-dir
-
-      #     Write-Host "global-dir:"
-      #     pnpm config get global-dir
-
-      #     Write-Host "pnpm root:"
-      #     pnpm root -g
-
-      #     Write-Host "PATH:"
-      #     $env:PATH
-
-      #     Write-Host "LocalAppData:"
-      #     $env:LOCALAPPDATA
-
-      #     Write-Host "Potential binaries:"
-      #     Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
-
-      # - name: Debug Package Metadata
-      #   if: matrix.package-manager == 'pnpm'
-      #   shell: pwsh
-      #   run: |
-      #     Get-Content "${{ github.workspace }}/staged-package/package.json"
-
-      # - name: Find 'vsuee' Executable
-      #   if: matrix.package-manager == 'pnpm'
-      #   shell: pwsh
-      #   run: |
-      #     Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
-
-      # - name: Debug pnpm Global Package
-      #   if: matrix.package-manager == 'pnpm'
-      #   shell: pwsh
-      #   run: |
-      #     Write-Host "Global bin:"
-      #     Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Force
-
-      #     Write-Host "Global package:"
-      #     Get-ChildItem "$env:LOCALAPPDATA\pnpm\global\5\node_modules\vsuee-skill" -Force
-
-      #     Write-Host "Package bin:"
-      #     Get-Content "$env:LOCALAPPDATA\pnpm\global\5\node_modules\vsuee-skill\package.json" |
-      #       Select-String '"bin"'
 
       - name: Verify Installation Via ${{ matrix.package-manager }}
         if: runner.os != 'Windows'
