@@ -171,12 +171,19 @@ jobs:
           corepack enable
 
       - name: Configure 'pnpm' Globals # pnpm cli specific setup to keep github actions satisfied
-        if: matrix.package-manager == 'pnpm'
+        if: matrix.package-manager == 'pnpm' && runner.os != 'Windows'
         shell: bash
         run: |
-          mkdir -p "$HOME/.local/share/pnpm"
           pnpm config set global-bin-dir "$HOME/.local/share/pnpm"
           echo "$HOME/.local/share/pnpm" >> "$GITHUB_PATH"
+
+      - name: Configure 'pnpm' Globals
+        if: matrix.package-manager == 'pnpm' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $pnpmBin = "$env:LOCALAPPDATA\pnpm"
+          pnpm config set global-bin-dir "$pnpmBin"
+          "$pnpmBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Setup 'bun'
         if: matrix.package-manager == 'bun'
