@@ -238,62 +238,62 @@ jobs:
         shell: bash
         run: echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
 
-      - name: Debug Binary Path # Used to fix path-not-found issues within github actions
-        shell: bash
-        run: |
-          echo "PATH: $PATH"
-          which vsuee || echo "vsuee not found on PATH"
+      # - name: Debug Binary Path # Used to fix path-not-found issues within github actions
+      #   shell: bash
+      #   run: |
+      #     echo "PATH: $PATH"
+      #     which vsuee || echo "vsuee not found on PATH"
 
-      - name: Debug pnpm Global Installation
-        if: matrix.package-manager == 'pnpm'
-        shell: pwsh
-        run: |
-          Write-Host "pnpm version:"
-          pnpm --version
+      # - name: Debug pnpm Global Installation
+      #   if: matrix.package-manager == 'pnpm'
+      #   shell: pwsh
+      #   run: |
+      #     Write-Host "pnpm version:"
+      #     pnpm --version
 
-          Write-Host "global-bin-dir:"
-          pnpm config get global-bin-dir
+      #     Write-Host "global-bin-dir:"
+      #     pnpm config get global-bin-dir
 
-          Write-Host "global-dir:"
-          pnpm config get global-dir
+      #     Write-Host "global-dir:"
+      #     pnpm config get global-dir
 
-          Write-Host "pnpm root:"
-          pnpm root -g
+      #     Write-Host "pnpm root:"
+      #     pnpm root -g
 
-          Write-Host "PATH:"
-          $env:PATH
+      #     Write-Host "PATH:"
+      #     $env:PATH
 
-          Write-Host "LocalAppData:"
-          $env:LOCALAPPDATA
+      #     Write-Host "LocalAppData:"
+      #     $env:LOCALAPPDATA
 
-          Write-Host "Potential binaries:"
-          Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
+      #     Write-Host "Potential binaries:"
+      #     Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
 
-      - name: Debug Package Metadata
-        if: matrix.package-manager == 'pnpm'
-        shell: pwsh
-        run: |
-          Get-Content "${{ github.workspace }}/staged-package/package.json"
+      # - name: Debug Package Metadata
+      #   if: matrix.package-manager == 'pnpm'
+      #   shell: pwsh
+      #   run: |
+      #     Get-Content "${{ github.workspace }}/staged-package/package.json"
 
-      - name: Find 'vsuee' Executable
-        if: matrix.package-manager == 'pnpm'
-        shell: pwsh
-        run: |
-          Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
+      # - name: Find 'vsuee' Executable
+      #   if: matrix.package-manager == 'pnpm'
+      #   shell: pwsh
+      #   run: |
+      #     Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
 
-      - name: Debug pnpm Global Package
-        if: matrix.package-manager == 'pnpm'
-        shell: pwsh
-        run: |
-          Write-Host "Global bin:"
-          Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Force
+      # - name: Debug pnpm Global Package
+      #   if: matrix.package-manager == 'pnpm'
+      #   shell: pwsh
+      #   run: |
+      #     Write-Host "Global bin:"
+      #     Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Force
 
-          Write-Host "Global package:"
-          Get-ChildItem "$env:LOCALAPPDATA\pnpm\global\5\node_modules\vsuee-skill" -Force
+      #     Write-Host "Global package:"
+      #     Get-ChildItem "$env:LOCALAPPDATA\pnpm\global\5\node_modules\vsuee-skill" -Force
 
-          Write-Host "Package bin:"
-          Get-Content "$env:LOCALAPPDATA\pnpm\global\5\node_modules\vsuee-skill\package.json" |
-            Select-String '"bin"'
+      #     Write-Host "Package bin:"
+      #     Get-Content "$env:LOCALAPPDATA\pnpm\global\5\node_modules\vsuee-skill\package.json" |
+      #       Select-String '"bin"'
 
       - name: Verify Installation Via ${{ matrix.package-manager }}
         if: runner.os != 'Windows'
