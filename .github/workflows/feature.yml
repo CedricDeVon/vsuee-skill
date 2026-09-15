@@ -12,8 +12,8 @@ jobs:
     name: Build Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@<CHECKOUT_COMMIT_SHA>
-      - uses: actions/setup-node@<CHECKOUT_COMMIT_SHA>
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '22'
 
@@ -24,7 +24,7 @@ jobs:
           npm run tmp:setup
           npm run build:release:package
 
-      - uses: actions/upload-artifact@<CHECKOUT_COMMIT_SHA>
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: staged-release
           path: ${{ env.OUTPUT_BUILD_RELEASE_PACKAGE_PATH }}
@@ -41,12 +41,12 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@<CHECKOUT_COMMIT_SHA>
+      - uses: actions/download-artifact@7930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: staged-release
           path: staged-package
 
-      - uses: actions/setup-node@<CHECKOUT_COMMIT_SHA>
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -56,13 +56,13 @@ jobs:
 
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@<CHECKOUT_COMMIT_SHA>
+        uses: pnpm/action-setup@ff378ebe6b225b0680b81c1ad4498ae0d1d3a5e3
         with:
           version: latest
 
       - name: Setup 'bun'
         if: matrix.package-manager == 'bun'
-        uses: oven-sh/setup-bun@<CHECKOUT_COMMIT_SHA>
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: latest
 
@@ -144,7 +144,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@<CHECKOUT_COMMIT_SHA>
+      - uses: actions/download-artifact@7930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: staged-release
           path: staged-package
@@ -153,7 +153,7 @@ jobs:
         shell: bash
         run: chmod +x "${{ github.workspace }}/staged-package/bin/vsuee.mjs"
 
-      - uses: actions/setup-node@<CHECKOUT_COMMIT_SHA>
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -163,7 +163,7 @@ jobs:
 
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@<CHECKOUT_COMMIT_SHA>
+        uses: pnpm/action-setup@ff378ebe6b225b0680b81c1ad4498ae0d1d3a5e3
         with:
           version: latest
 
@@ -177,7 +177,7 @@ jobs:
 
       - name: Setup 'bun'
         if: matrix.package-manager == 'bun'
-        uses: oven-sh/setup-bun@<CHECKOUT_COMMIT_SHA>
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: latest
 
