@@ -262,6 +262,32 @@ jobs:
           Write-Host "Potential binaries:"
           Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
 
+      - name: Debug Package Metadata
+        if: matrix.package-manager == 'pnpm'
+        shell: pwsh
+        run: |
+          Get-Content "${{ github.workspace }}/staged-package/package.json"
+
+      - name: Find 'vsuee' Executable
+        if: matrix.package-manager == 'pnpm'
+        shell: pwsh
+        run: |
+          Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Recurse -Filter "vsuee*" -ErrorAction SilentlyContinue
+
+      - name: Debug pnpm Global Package
+        if: matrix.package-manager == 'pnpm'
+        shell: pwsh
+        run: |
+          Write-Host "Global bin:"
+          Get-ChildItem "$env:LOCALAPPDATA\pnpm" -Force
+
+          Write-Host "Global package:"
+          Get-ChildItem "$env:LOCALAPPDATA\pnpm\global\5\node_modules\vsuee-skill" -Force
+
+          Write-Host "Package bin:"
+          Get-Content "$env:LOCALAPPDATA\pnpm\global\5\node_modules\vsuee-skill\package.json" |
+            Select-String '"bin"'
+
       - name: Verify Installation Via ${{ matrix.package-manager }}
         if: runner.os != 'Windows'
         shell: bash
