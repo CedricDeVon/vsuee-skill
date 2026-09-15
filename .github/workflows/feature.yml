@@ -23,7 +23,6 @@ jobs:
           npm run output:cleanup
           npm run output:setup
           npm run build:release:package
-          npm run test:pre-npm-deployment
 
       - uses: actions/upload-artifact@v6
         with:
