@@ -52,7 +52,7 @@ jobs:
 
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@008330803749db0355799c700092d9a85fd074e9
+        uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b
         with:
           version: 10.15.1
 
@@ -159,7 +159,7 @@ jobs:
 
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@008330803749db0355799c700092d9a85fd074e9
+        uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b
         with:
           version: 10.15.1
 
