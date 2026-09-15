@@ -50,15 +50,15 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Setup 'pnpm'
+        if: matrix.package-manager == 'pnpm'
+        uses: pnpm/action-setup@008330803749db0355799c700092d9a85fd074e9
+        with:
+          version: 10.15.1
+
       - name: Enable 'yarn' or 'pnpm' Corepack
         if: matrix.package-manager == 'pnpm' || matrix.package-manager == 'yarn'
         run: corepack enable
-
-      - name: Setup 'pnpm'
-        if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@ff378ebe6b225b0680b81c1ad4498ae0d1d3a5e3
-        with:
-          version: latest
 
       - name: Setup 'bun'
         if: matrix.package-manager == 'bun'
@@ -159,7 +159,7 @@ jobs:
 
       - name: Setup 'pnpm'
         if: matrix.package-manager == 'pnpm'
-        uses: pnpm/action-setup@ff378ebe6b225b0680b81c1ad4498ae0d1d3a5e3
+        uses: pnpm/action-setup@008330803749db0355799c700092d9a85fd074e9
         with:
           version: 10.15.1
 
