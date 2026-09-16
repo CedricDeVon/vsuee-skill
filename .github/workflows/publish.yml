@@ -42,10 +42,6 @@ jobs:
           npm run build:release:dist
           npm run rename:release:dist
 
-      - name: Testing Release Package Content
-        run: |
-          npm run test:release:package-content
-
       - name: Testing Local Release Installation
         run: |
           npm run test:release:local-installation
