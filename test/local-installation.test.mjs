@@ -1,13 +1,16 @@
-import { mkdir, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
+import { mkdir, rm } from "node:fs/promises";
+
+import { getScriptName } from "./utility.mjs";
 
 const [, , installationDirectoryArgument, packagePathArgument] =
     process.argv;
+const scriptName = getScriptName(import.meta.url)
 
 if (!installationDirectoryArgument || !packagePathArgument) {
     console.error(
-        "Usage: node local-installation.test.mjs <installation-directory> <package-path>",
+        `Usage: node ${scriptName} <installation-directory> <package-path>`,
     );
     process.exit(1);
 }
