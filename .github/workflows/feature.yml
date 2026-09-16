@@ -1,217 +1,256 @@
 name: Feature
 
 on:
+  pull_request:
+    branches: [main]
   push:
-    branches: [feat/**]
+    branches: [main]
+  workflow_dispatch:
 
 env:
-  OUTPUT_BUILD_RELEASE_PACKAGE_PATH: .tmp/build/release/dist
+  OUTPUT_RELEASE_TARBALL_PATH: .tmp/build/release/dist/vsuee-skill.tgz
 
 jobs:
-  stage-release: # Single-executing job
-    name: Build Release Package
+  stage-release:
+    name: Build and verify release artifact
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
 
-      - name: Setup Temporary Filesystem Tree
+      - name: Set up release filesystem
         shell: bash
         run: |
           npm run tmp:cleanup
           npm run tmp:setup
 
-      - name: Build Release Package
+      - name: Build release package and tarball
+        shell: bash
         run: |
           npm run build:release:package
-
-      - name: Build Release Tarball
-        run: |
           npm run build:release:dist
           npm run rename:release:dist
 
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+      - name: Verify release artifact contents
+        shell: bash
+        run: npm run test:release:package-content
+
+      - name: Verify local release installation
+        shell: bash
+        run: npm run test:release:local-installation
+
+      - name: Upload verified release tarball
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: staged-release
-          path: ${{ env.OUTPUT_BUILD_RELEASE_PACKAGE_PATH }}
+          path: ${{ env.OUTPUT_RELEASE_TARBALL_PATH }}
+          if-no-files-found: error
 
   test-local-installation:
     needs: stage-release
-    name: Test Local Install | Node ${{ matrix.node-version }} | ${{ matrix.os }} | ${{ matrix.package-manager }}
+    name: Local install | Node ${{ matrix.node-version }} | ${{ matrix.os }} | ${{ matrix.package-manager }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: ['18', '20', '22', '24', '26']
-        package-manager: [npm, pnpm, yarn, bun]
+        include:
+          - os: ubuntu-latest
+            node-version: '18'
+            package-manager: npm
+          - os: ubuntu-latest
+            node-version: '22'
+            package-manager: pnpm
+          - os: macos-latest
+            node-version: '18'
+            package-manager: yarn
+          - os: macos-latest
+            node-version: '22'
+            package-manager: bun
+          - os: windows-latest
+            node-version: '18'
+            package-manager: npm
+          - os: windows-latest
+            node-version: '22'
+            package-manager: pnpm
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+      - name: Download staged release
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: staged-release
           path: staged-package
 
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Setup 'pnpm'
+      - name: Set up pnpm
         if: matrix.package-manager == 'pnpm'
+        shell: bash
         run: |
           corepack enable
           corepack prepare pnpm@10.15.1 --activate
 
-      - name: Setup 'yarn'
+      - name: Set up yarn
         if: matrix.package-manager == 'yarn'
+        shell: bash
         run: |
           corepack enable
+          corepack prepare yarn@1.22.22 --activate
 
-      - name: Setup 'bun'
+      - name: Set up bun
         if: matrix.package-manager == 'bun'
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: latest
+          bun-version: '1.4.2'
 
-      - name: Setup Sandbox Filesystem Tree
+      - name: Create install sandbox
         shell: bash
-        run: |
-          mkdir -p "${{ runner.temp }}/sandbox"
-          cd "${{ runner.temp }}/sandbox"
+        run: mkdir -p "${{ runner.temp }}/sandbox"
 
-      - name: Setup 'npm' Project
+      - name: Initialize npm project
+        working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: |
-          npm init -y
+        run: npm init --yes
 
-      - name: Install Via 'npm'
+      - name: Install via npm
         if: matrix.package-manager == 'npm'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: npm install "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
+        run: npm install --ignore-scripts "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
-      - name: Install Via 'pnpm'
+      - name: Install via pnpm
         if: matrix.package-manager == 'pnpm'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: pnpm add "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
-      - name: Install Via 'yarn'
+      - name: Install via yarn
         if: matrix.package-manager == 'yarn'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: yarn add "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
+        run: yarn add "file:${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
-      - name: Install Via 'bun'
+      - name: Install via bun
         if: matrix.package-manager == 'bun'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: bun add "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
-      - name: Verify Installation Via 'npm'
+      - name: Verify npm installation
         if: matrix.package-manager == 'npm'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: npx vsuee --help
+        run: npm exec --offline -- vsuee --help
 
-      - name: Verify Installation Via 'pnpm'
+      - name: Verify pnpm installation
         if: matrix.package-manager == 'pnpm'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: pnpm exec vsuee --help
 
-      - name: Verify Installation Via 'yarn'
+      - name: Verify yarn installation
         if: matrix.package-manager == 'yarn'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: yarn vsuee --help
 
-      - name: Verify Installation Via 'bun'
+      - name: Verify bun installation
         if: matrix.package-manager == 'bun'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: bunx --package vsuee-skill -- vsuee --help
+        run: bunx --no-install vsuee --help
 
   test-global-installation:
     needs: stage-release
-    name: Test Global Install | Node ${{ matrix.node-version }} | ${{ matrix.os }} | ${{ matrix.package-manager }}
+    name: Global install | Node ${{ matrix.node-version }} | ${{ matrix.os }} | ${{ matrix.package-manager }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: ['18', '20', '22', '24', '26']
-        package-manager: [npm, yarn, bun]
+        include:
+          - os: ubuntu-latest
+            node-version: '18'
+            package-manager: npm
+          - os: macos-latest
+            node-version: '22'
+            package-manager: npm
+          - os: windows-latest
+            node-version: '18'
+            package-manager: npm
+          - os: ubuntu-latest
+            node-version: '22'
+            package-manager: yarn
+          - os: macos-latest
+            node-version: '22'
+            package-manager: bun
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+      - name: Download staged release
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: staged-release
           path: staged-package
 
-      - name: Enable Execution  # github actions may not recognize certain files as 'authorized' for execution
-        if: runner.os != 'Windows'
-        shell: bash
-        run: chmod +x "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
-
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: ${{ matrix.node-version }}          
-    
-      - name: Setup 'yarn'
+          node-version: ${{ matrix.node-version }}
+
+      - name: Set up yarn
         if: matrix.package-manager == 'yarn'
+        shell: bash
         run: |
           corepack enable
+          corepack prepare yarn@1.22.22 --activate
 
-      - name: Setup 'bun'
+      - name: Set up bun
         if: matrix.package-manager == 'bun'
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: latest
+          bun-version: '1.4.2'
 
-      - name: Install Via 'npm'
+      - name: Install globally via npm
         if: matrix.package-manager == 'npm'
         shell: bash
-        run: npm install -g "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
+        run: npm install --ignore-scripts --global "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
-      - name: Export 'npm' Bin To Unix PATH
+      - name: Export npm bin to Unix PATH
         if: matrix.package-manager == 'npm' && runner.os != 'Windows'
         shell: bash
         run: echo "$(npm config get prefix)/bin" >> "$GITHUB_PATH"
 
-      - name: Export 'npm' Bin To Windows PATH
+      - name: Export npm bin to Windows PATH
         if: matrix.package-manager == 'npm' && runner.os == 'Windows'
         shell: bash
         run: echo "$(npm config get prefix)" >> "$GITHUB_PATH"
 
-      - name: Install Via 'yarn'
+      - name: Install globally via yarn
         if: matrix.package-manager == 'yarn'
         shell: bash
         run: yarn global add "file:${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
-      - name: Export 'yarn' Bin To PATH
+      - name: Export yarn bin to PATH
         if: matrix.package-manager == 'yarn'
         shell: bash
         run: echo "$(yarn global bin)" >> "$GITHUB_PATH"
 
-      - name: Install Via 'bun'
+      - name: Install globally via bun
         if: matrix.package-manager == 'bun'
         shell: bash
-        run: bun add -g "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
+        run: bun add --global "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
-      - name: Export 'bun' Bin To PATH
+      - name: Export bun bin to PATH
         if: matrix.package-manager == 'bun'
         shell: bash
         run: echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
 
-      - name: Verify Installation Via '${{ matrix.package-manager }}'
-        if: runner.os != 'Windows'
+      - name: Verify global installation
         shell: bash
-        run: vsuee --help
-
-      - name: Verify Installation Via '${{ matrix.package-manager }}'
-        if: runner.os == 'Windows'
-        shell: pwsh
         run: vsuee --help

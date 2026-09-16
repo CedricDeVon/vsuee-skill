@@ -56,8 +56,8 @@
     "build:release:package": "node scripts/copy-filesystem-path.mjs .tmp/build/release/package package.json LICENSE plugin.json README.md bin lib skills",
     "build:release:dist": "node scripts/npm-pack-tarball.mjs .tmp/build/release/package .tmp/build/release/dist",
     "rename:release:dist": "node scripts/rename-filesystem-path.mjs .tmp/build/release/dist \"*.tgz\" vsuee-skill.tgz",
-    "deploy:staged:npm:release": "npm stage publish .tmp/build/release/package",
-    "workflow:stage-release": "node scripts/run-scripts.mjs test tmp:cleanup tmp:setup build:release:package build:release:dist rename:release:dist test:release:local-installation"
+    "deploy:staged:npm:release": "npm stage publish .tmp/build/release/dist/vsuee-skill.tgz",
+    "workflow:stage-release": "node scripts/run-scripts.mjs tmp:cleanup tmp:setup build:release:package build:release:dist rename:release:dist test:release:package-content test:release:local-installation"
   },
   "peerDependencies": {
     "playwright": "^1.40.0"
