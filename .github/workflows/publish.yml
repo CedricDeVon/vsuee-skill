@@ -1,14 +1,14 @@
-name: NPM Publish
+name: Publish
 
 on:
   # Uncomment when merged to 'main' branch
-  push:
-    tags:
-      - "v*"
+  # push:
+  #   tags:
+  #     - "v*"
 
   # Debugging purposes
-  # push:
-  #   branches: [feat/**]
+  push:
+    branches: [feat/**]
 
 permissions:
   id-token: write
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Source
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Setup Node.js
@@ -32,7 +32,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Setup Temporary Filesystem
+      - name: Setup Temporary Filesystem Tree
         run: |
           npm run tmp:cleanup
           npm run tmp:setup
@@ -40,6 +40,9 @@ jobs:
       - name: Build Release Package
         run: |
           npm run build:release:package
+
+      - name: Build Release Tarball
+        run: |
           npm run build:release:dist
           npm run rename:release:dist
 

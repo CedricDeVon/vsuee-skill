@@ -17,11 +17,15 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Build Release Package
+      - name: Setup Temporary Filesystem Tree
         shell: bash
         run: |
           npm run tmp:cleanup
           npm run tmp:setup
+
+      - name: Build Release Package
+        shell: bash
+        run: |
           npm run build:release:package
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
@@ -67,7 +71,7 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Setup Sandbox Folder
+      - name: Setup Sandbox Filesystem Tree
         shell: bash
         run: |
           mkdir -p "${{ runner.temp }}/sandbox"
@@ -102,25 +106,25 @@ jobs:
         shell: bash
         run: bun add "${{ github.workspace }}/staged-package"
 
-      - name: Verify Installation 'npm'
+      - name: Verify Installation Via 'npm'
         if: matrix.package-manager == 'npm'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: npx vsuee --help
 
-      - name: Verify Installation 'pnpm'
+      - name: Verify Installation Via 'pnpm'
         if: matrix.package-manager == 'pnpm'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: pnpm exec vsuee --help
 
-      - name: Verify Installation 'yarn'
+      - name: Verify Installation Via 'yarn'
         if: matrix.package-manager == 'yarn'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
         run: yarn vsuee --help
 
-      - name: Verify Installation 'bun'
+      - name: Verify Installation Via 'bun'
         if: matrix.package-manager == 'bun'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
@@ -198,12 +202,12 @@ jobs:
         shell: bash
         run: echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
 
-      - name: Verify Installation Via ${{ matrix.package-manager }}
+      - name: Verify Installation Via '${{ matrix.package-manager }}'
         if: runner.os != 'Windows'
         shell: bash
         run: vsuee --help
 
-      - name: Verify Installation Via ${{ matrix.package-manager }}
+      - name: Verify Installation Via '${{ matrix.package-manager }}'
         if: runner.os == 'Windows'
         shell: pwsh
         run: vsuee --help
