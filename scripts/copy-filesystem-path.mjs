@@ -1,5 +1,5 @@
-import { cpSync } from "node:fs";
 import path from "node:path";
+import { cpSync } from "node:fs";
 
 import { getScriptName } from "./utility.mjs";
 
