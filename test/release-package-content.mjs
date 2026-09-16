@@ -20,11 +20,11 @@ export const EXPECTED_PACKAGE_FILES = Object.freeze([
 ]);
 
 function readTarText(header, start, end) {
-    return header.subarray(start, end).toString("utf8").replace(/\0.*$/, "").trim();
+    return header.subarray(start, end).toString("utf8").replace(/\0.*$/, "");
 }
 
 function readTarOctal(header, start, end, label) {
-    const text = readTarText(header, start, end);
+    const text = readTarText(header, start, end).trim();
     if (!/^[0-7]+$/.test(text)) {
         throw new Error(`Invalid ${label} field in tar header.`);
     }
@@ -66,6 +66,7 @@ export function verifyPackageTarball(
     }
 
     const files = [];
+    const payloads = new Map();
     let offset = 0;
     let zeroBlocks = 0;
 
@@ -109,6 +110,7 @@ export function verifyPackageTarball(
         }
 
         files.push(entryName);
+        payloads.set(entryName, tarball.subarray(offset, offset + size));
         offset = entryEnd;
     }
 
@@ -150,6 +152,25 @@ export function verifyPackageTarball(
         ].filter(Boolean);
 
         throw new Error(details.join("\n"));
+    }
+
+    let packageManifest;
+    let pluginManifest;
+    try {
+        packageManifest = JSON.parse(payloads.get("package/package.json").toString("utf8"));
+        pluginManifest = JSON.parse(payloads.get("package/plugin.json").toString("utf8"));
+    } catch (error) {
+        throw new Error("Release manifests must contain valid JSON.", { cause: error });
+    }
+
+    if (
+        packageManifest.name !== "vsuee-skill"
+        || pluginManifest.name !== packageManifest.name
+        || typeof packageManifest.version !== "string"
+        || packageManifest.version.length === 0
+        || pluginManifest.version !== packageManifest.version
+    ) {
+        throw new Error("Release manifests must have matching package names and versions.");
     }
 
     return files;
