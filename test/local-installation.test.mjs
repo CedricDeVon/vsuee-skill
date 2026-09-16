@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { mkdir, rm } from "node:fs/promises";
 
-import { getScriptName } from "./utility.mjs";
+import { getScriptName } from "../scripts/utility.mjs";
 
 const [, , installationDirectoryArgument, packagePathArgument] =
     process.argv;
