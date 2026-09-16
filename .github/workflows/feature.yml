@@ -9,7 +9,7 @@ env:
 
 jobs:
   stage-release: # Single-executing job
-    name: Build Release
+    name: Build Release Package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803

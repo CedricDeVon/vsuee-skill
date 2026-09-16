@@ -48,7 +48,7 @@ jobs:
 
       - name: Testing Release Package Content
         run: |
-          npm run test:release-package-content
+          npm run test:release:package-content
 
       - name: Testing Local Release Installation
         run: |
