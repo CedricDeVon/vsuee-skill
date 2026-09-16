@@ -1,16 +1,19 @@
 import { spawnSync } from "node:child_process";
 
+import { getNpmCli, getScriptName } from "./utility.mjs";
+
 const scripts = process.argv.slice(2);
+const scriptName = getScriptName(import.meta.url)
 
-if (scripts.length === 0) {
-    throw new Error("At least one npm script is required.");
+if (!scripts.length) {    
+    throw new Error(
+        `Usage: node ${scriptName} <script> [...]`,
+    );
 }
-
-const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 
 for (const script of scripts) {
     const result = spawnSync(
-        npm,
+        getNpmCli(),
         ["run", script],
         {
             stdio: "inherit",

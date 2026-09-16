@@ -1,17 +1,18 @@
 import { spawnSync } from "node:child_process";
 
+import { getNpmCli, getScriptName } from "./utility.mjs";
+
+const scriptName = getScriptName(import.meta.url)
 const [inputPath, outputPath] = process.argv.slice(2);
 
 if (!inputPath || !outputPath) {
     throw new Error(
-        "Usage: node pack.mjs <input-path> <output-path>.",
+        `Usage: node ${scriptName} <inputPath> <outputPath>`,
     );
 }
 
-const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-
 const result = spawnSync(
-    npm,
+    getNpmCli(),
     [
         "pack",
         inputPath,
