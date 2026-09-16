@@ -1,14 +1,9 @@
 name: Publish
 
 on:
-  # Uncomment when merged to 'main' branch
-  # push:
-  #   tags:
-  #     - "v*"
-
-  # Debugging purposes
   push:
-    branches: [feat/**]
+    tags:
+      - "v*"
 
 permissions:
   id-token: write
