@@ -154,7 +154,7 @@ jobs:
       - name: Enable Execution  # github actions may not recognize certain files as 'authorized' for execution
         if: runner.os != 'Windows'
         shell: bash
-        run: chmod +x "${{ github.workspace }}/staged-package/vsuee-skill.tgz/bin/vsuee.mjs"
+        run: chmod +x "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
