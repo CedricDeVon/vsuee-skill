@@ -51,16 +51,12 @@
     "test:release:package-content": "node test/release-package-content.test.mjs .tmp/build/release/package",
     "test:release:local-installation": "node test/local-installation.test.mjs .tmp/test/environment/release/installation .tmp/build/release/dist/vsuee-skill.tgz",
     "tmp:cleanup": "node scripts/remove-filesystem-path.mjs .tmp",
-    "tmp:setup": "node scripts/setup-filesystem-tree.mjs .tmp/test/environment/release/installation .tmp/build/release/package .tmp/build/release/dist",
+    "tmp:setup": "node scripts/setup-filesystem-tree.mjs .tmp/build/release/package .tmp/build/release/dist .tmp/test/environment/release/installation",
     "build:release:package": "node scripts/copy-filesystem-path.mjs .tmp/build/release/package package.json LICENSE plugin.json README.md bin lib skills",
     "build:release:dist": "node scripts/npm-pack-tarball.mjs .tmp/build/release/package .tmp/build/release/dist",
     "rename:release:dist": "node scripts/rename-filesystem-path.mjs .tmp/build/release/dist \"*.tgz\" vsuee-skill.tgz",
     "deploy:staged:npm:release": "npm stage publish .tmp/build/release/package",
-    "clean:local:release": "npm uninstall vsuee-skill",
-    "clean:global:release": "npm uninstall -g vsuee-skill",
-    "clean:all:release": "node scripts/run-scripts.mjs clean:local:release clean:global:release",
-    "workflow:stage-release": "node scripts/run-scripts.mjs tmp:cleanup tmp:setup build:release:package build:release:dist rename:release:dist test:release:package-content test:release:local-installation",
-    "workflow:npm-deploy": "node scripts/run-scripts.mjs workflow:stage-release clean:global:release deploy:staged:npm:release"
+    "workflow:stage-release": "node scripts/run-scripts.mjs tmp:cleanup tmp:setup build:release:package build:release:dist rename:release:dist test:release:package-content test:release:local-installation"
   },
   "peerDependencies": {
     "playwright": "^1.40.0"
