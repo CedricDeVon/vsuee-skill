@@ -1,9 +1,9 @@
 import { rmSync } from "node:fs";
 
-import { getScriptName } from "./utility.mjs";
+import { getScriptName, resolveProjectPath } from "./utility.mjs";
 
 const inputPath = process.argv[2];
-const scriptName = getScriptName(import.meta.url)
+const scriptName = getScriptName(import.meta.url);
 
 if (!inputPath) {
     throw new Error(
@@ -11,8 +11,7 @@ if (!inputPath) {
     );
 }
 
-rmSync(
-    inputPath, {
+rmSync(resolveProjectPath(inputPath), {
     recursive: true,
     force: true,
 });

@@ -1,8 +1,8 @@
 import { mkdirSync } from "node:fs";
 
-import { getScriptName } from "./utility.mjs";
+import { getScriptName, resolveProjectPath } from "./utility.mjs";
 
-const scriptName = getScriptName(import.meta.url)
+const scriptName = getScriptName(import.meta.url);
 const inputPaths = process.argv.slice(2);
 
 if (inputPaths.length === 0) {
@@ -12,7 +12,7 @@ if (inputPaths.length === 0) {
 }
 
 for (const inputPath of inputPaths) {
-    mkdirSync(inputPath, {
+    mkdirSync(resolveProjectPath(inputPath), {
         recursive: true,
     });
 }

@@ -1,6 +1,6 @@
 {
   "name": "vsuee-skill",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "High-speed CLI toolkit and AI agent skill for the Visayas State University E-Learning Environment (VSUEE Moodle).",
   "keywords": [
     "vsuee",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/M1Vj/vsuee-skill"
+    "url": "git+https://github.com/M1Vj/vsuee-skill.git"
   },
   "license": "MIT",
   "author": "Vj Mabansag",
@@ -45,10 +45,12 @@
   },
   "scripts": {
     "test": "npm run test:unit",
-    "test:unit": "node --test test/moodle-client.test.mjs test/moodle-client-downloads.test.mjs test/session-auth.test.mjs test/sync-manager.test.mjs test/browser-runner.test.mjs",
+    "test:unit": "node --test test/moodle-client.test.mjs test/moodle-client-downloads.test.mjs test/session-auth.test.mjs test/sync-manager.test.mjs test/browser-runner.test.mjs test/release-workflow.test.mjs",
     "test:all": "node --test test/*.test.mjs",
     "test:live": "VSUEE_LIVE_TEST=1 node --test test/integration.test.mjs",
-    "test:release:local-installation": "node test/local-installation.test.mjs .tmp/test/environment/release/installation .tmp/build/release/dist/vsuee-skill.tgz vsuee-skill",
+    "test:release:package-content": "node test/release-package-content.mjs .tmp/build/release/dist/vsuee-skill.tgz",
+    "test:release:local-installation": "node test/local-installation.mjs .tmp/test/environment/release/installation .tmp/build/release/dist/vsuee-skill.tgz",
+    "test:release:workflow": "node --test test/release-workflow.test.mjs",
     "tmp:cleanup": "node scripts/remove-filesystem-path.mjs .tmp",
     "tmp:setup": "node scripts/setup-filesystem-tree.mjs .tmp/build/release/package .tmp/build/release/dist .tmp/test/environment/release/installation",
     "build:release:package": "node scripts/copy-filesystem-path.mjs .tmp/build/release/package package.json LICENSE plugin.json README.md bin lib skills",

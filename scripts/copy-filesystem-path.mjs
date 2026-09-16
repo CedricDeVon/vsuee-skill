@@ -1,9 +1,9 @@
 import path from "node:path";
 import { cpSync } from "node:fs";
 
-import { getScriptName } from "./utility.mjs";
+import { getScriptName, resolveProjectPath } from "./utility.mjs";
 
-const scriptName = getScriptName(import.meta.url)
+const scriptName = getScriptName(import.meta.url);
 const [outputPath, ...inputPaths] = process.argv.slice(2);
 
 if (!outputPath || !inputPaths.length) {
@@ -12,12 +12,13 @@ if (!outputPath || !inputPaths.length) {
     );
 }
 
+const resolvedOutputPath = resolveProjectPath(outputPath);
+
 for (const inputPath of inputPaths) {
+    const resolvedInputPath = resolveProjectPath(inputPath);
     cpSync(
-        inputPath,
-        path.join(outputPath,
-        path.basename(inputPath)
-    ),
+        resolvedInputPath,
+        path.join(resolvedOutputPath, path.basename(resolvedInputPath)),
         {
             recursive: true,
         },

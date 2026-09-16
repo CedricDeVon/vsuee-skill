@@ -1,8 +1,12 @@
 import { spawnSync } from "node:child_process";
 
-import { getNpmCli, getScriptName } from "./utility.mjs";
+import {
+    getNpmCli,
+    getScriptName,
+    resolveProjectPath,
+} from "./utility.mjs";
 
-const scriptName = getScriptName(import.meta.url)
+const scriptName = getScriptName(import.meta.url);
 const [inputPath, outputPath] = process.argv.slice(2);
 
 if (!inputPath || !outputPath) {
@@ -11,13 +15,16 @@ if (!inputPath || !outputPath) {
     );
 }
 
+const resolvedInputPath = resolveProjectPath(inputPath);
+const resolvedOutputPath = resolveProjectPath(outputPath);
+
 const result = spawnSync(
     getNpmCli(),
     [
         "pack",
-        inputPath,
+        resolvedInputPath,
         "--pack-destination",
-        outputPath,
+        resolvedOutputPath,
     ],
     {
         stdio: "inherit",
