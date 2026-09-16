@@ -5,7 +5,7 @@ on:
     branches: [feat/**]
 
 env:
-  OUTPUT_BUILD_RELEASE_PACKAGE_PATH: .tmp/build/release/package
+  OUTPUT_BUILD_RELEASE_PACKAGE_PATH: .tmp/build/release/dist
 
 jobs:
   stage-release: # Single-executing job
@@ -24,9 +24,13 @@ jobs:
           npm run tmp:setup
 
       - name: Build Release Package
-        shell: bash
         run: |
           npm run build:release:package
+
+      - name: Build Release Tarball
+        run: |
+          npm run build:release:dist
+          npm run rename:release:dist
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
@@ -86,25 +90,25 @@ jobs:
         if: matrix.package-manager == 'npm'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: npm install "${{ github.workspace }}/staged-package"
+        run: npm install "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
       - name: Install Via 'pnpm'
         if: matrix.package-manager == 'pnpm'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: pnpm add "${{ github.workspace }}/staged-package"
+        run: pnpm add "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
       - name: Install Via 'yarn'
         if: matrix.package-manager == 'yarn'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: yarn add "${{ github.workspace }}/staged-package"
+        run: yarn add "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
       - name: Install Via 'bun'
         if: matrix.package-manager == 'bun'
         working-directory: ${{ runner.temp }}/sandbox
         shell: bash
-        run: bun add "${{ github.workspace }}/staged-package"
+        run: bun add "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
       - name: Verify Installation Via 'npm'
         if: matrix.package-manager == 'npm'
@@ -150,7 +154,7 @@ jobs:
       - name: Enable Execution  # github actions may not recognize certain files as 'authorized' for execution
         if: runner.os != 'Windows'
         shell: bash
-        run: chmod +x "${{ github.workspace }}/staged-package/bin/vsuee.mjs"
+        run: chmod +x "${{ github.workspace }}/staged-package/vsuee-skill.tgz/bin/vsuee.mjs"
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
@@ -170,7 +174,7 @@ jobs:
       - name: Install Via 'npm'
         if: matrix.package-manager == 'npm'
         shell: bash
-        run: npm install -g "${{ github.workspace }}/staged-package"
+        run: npm install -g "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
       - name: Export 'npm' Bin To Unix PATH
         if: matrix.package-manager == 'npm' && runner.os != 'Windows'
@@ -185,7 +189,7 @@ jobs:
       - name: Install Via 'yarn'
         if: matrix.package-manager == 'yarn'
         shell: bash
-        run: yarn global add "file:${{ github.workspace }}/staged-package"
+        run: yarn global add "file:${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
       - name: Export 'yarn' Bin To PATH
         if: matrix.package-manager == 'yarn'
@@ -195,7 +199,7 @@ jobs:
       - name: Install Via 'bun'
         if: matrix.package-manager == 'bun'
         shell: bash
-        run: bun add -g "${{ github.workspace }}/staged-package"
+        run: bun add -g "${{ github.workspace }}/staged-package/vsuee-skill.tgz"
 
       - name: Export 'bun' Bin To PATH
         if: matrix.package-manager == 'bun'
